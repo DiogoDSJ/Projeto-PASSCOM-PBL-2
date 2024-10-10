@@ -174,7 +174,7 @@ def comprar_passagem():
         if sucesso:
             salvar_trechos(trechos_viagem)
             # Adicionar passagem ao cliente
-            novo_id = int(max(cliente.trechos.keys(), key=int)) + 1
+            novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
             cliente.trechos[str(novo_id)] = caminho
             atualizar_cliente(cliente)
             return jsonify({"msg": "Passagem comprada com sucesso"}), 200
