@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 import json
 from pathlib import Path
 import threading
-import requests
 
 app = Flask(__name__)
 
@@ -10,10 +9,10 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
+SERVER_1_URL = "http://localhost:3000"
+
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
-
-SERVER_2_URL = "http://localhost:4000"
 
 # Classe Cliente
 class Cliente:
@@ -98,6 +97,15 @@ def carregar_trechos():
 def salvar_trechos(trechos):
     dados = {"trechos": trechos}
     salvar_json(dados, CAMINHO_TRECHOS)
+
+# Rota que lista trechos do Servidor 1
+@app.route('/listar_trechos', methods=['GET'])
+def listar_trechos_s1():
+    # Fazendo a chamada GET para o Servidor 1 para listar trechos
+    response = request.get(f"{SERVER_1_URL}/trechos")
+
+    # Retorna a resposta do Servidor 1
+    return jsonify(response.json()), response.status_code
 
 # Endpoint de Cadastro (sem senha)
 @app.route('/cadastro', methods=['POST'])
@@ -273,9 +281,12 @@ def inicializar_arquivos():
             except Exception as e:
                 print(f"Erro ao criar {CAMINHO_TRECHOS}: {e}")
 
+
+
+
 # Executa a inicialização dos arquivos
 inicializar_arquivos()
 
 # Executar a aplicação
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=4000)
