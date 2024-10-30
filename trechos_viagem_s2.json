@@ -1,0 +1,70 @@
+{
+    "trechos": {
+        "Belo Horizonte-MG": {
+            "Vitória-ES": {
+                "vagas": 10,
+                "preco": 95
+            },
+            "São Paulo-SP": {
+                "vagas": 7,
+                "preco": 130
+            }
+        },
+        "Vitória-ES": {
+            "Rio de Janeiro-RJ": {
+                "vagas": 8,
+                "preco": 70
+            },
+            "Salvador-BA": {
+                "vagas": 4,
+                "preco": 160
+            }
+        },
+        "São Paulo-SP": {
+            "Curitiba-PR": {
+                "vagas": 12,
+                "preco": 100
+            },
+            "Porto Alegre-RS": {
+                "vagas": 3,
+                "preco": 180
+            }
+        },
+        "Curitiba-PR": {
+            "Florianópolis-SC": {
+                "vagas": 6,
+                "preco": 80
+            }
+        },
+        "Porto Alegre-RS": {
+            "Canoas-RS": {
+                "vagas": 5,
+                "preco": 30
+            }
+        },
+        "Salvador-BA": {
+            "Aracaju-SE": {
+                "vagas": 2,
+                "preco": 90
+            }
+        },
+        "Aracaju-SE": {
+            "Maceió-AL": {
+                "vagas": 4,
+                "preco": 65
+            }
+        },
+        "Maceió-AL": {
+            "Recife-PE": {
+                "vagas": 7,
+                "preco": 55
+            }
+        },
+        "Recife-PE": {
+            "João Pessoa-PB": {
+                "vagas": 6,
+                "preco": 45
+            }
+        }
+    }
+}

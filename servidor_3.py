@@ -6,7 +6,7 @@ import threading
 app = Flask(__name__)
 
 # Caminhos dos arquivos JSON
-CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem.json"
+CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s3.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
 SERVER_1_URL = "http://localhost:3000"

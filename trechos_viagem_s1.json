@@ -1,0 +1,72 @@
+{
+    "trechos": {
+        "São Paulo-SP": {
+            "Rio de Janeiro-RJ": {
+                "vagas": 10,
+                "preco": 100
+            },
+            "Brasília-DF": {
+                "vagas": 5,
+                "preco": 150
+            }
+        },
+        "Rio de Janeiro-RJ": {
+            "Brasília-DF": {
+                "vagas": 8,
+                "preco": 80
+            },
+            "Salvador-BA": {
+                "vagas": 2,
+                "preco": 120
+            }
+        },
+        "Brasília-DF": {
+            "Salvador-BA": {
+                "vagas": 4,
+                "preco": 90
+            }
+        },
+        "Salvador-BA": {
+            "Fortaleza-CE": {
+                "vagas": 3,
+                "preco": 110
+            }
+        },
+        "Fortaleza-CE": {
+            "Recife-PE": {
+                "vagas": 6,
+                "preco": 70
+            }
+        },
+        "Recife-PE": {
+            "Porto Alegre-RS": {
+                "vagas": 2,
+                "preco": 130
+            }
+        },
+        "Porto Alegre-RS": {
+            "Curitiba-PR": {
+                "vagas": 5,
+                "preco": 95
+            }
+        },
+        "Curitiba-PR": {
+            "Manaus-AM": {
+                "vagas": 1,
+                "preco": 200
+            }
+        },
+        "Manaus-AM": {
+            "Belo Horizonte-MG": {
+                "vagas": 4,
+                "preco": 160
+            }
+        },
+        "Belo Horizonte-MG": {
+            "São Paulo-SP": {
+                "vagas": 7,
+                "preco": 85
+            }
+        }
+    }
+}

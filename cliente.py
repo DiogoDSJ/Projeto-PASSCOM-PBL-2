@@ -7,6 +7,9 @@ import json
 SERVER_HOST = 'localhost'  # Altere para o IP do servidor se necessário
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
+SERVER_1_URL = "http://localhost:3000"
+SERVER_2_URL = "http://localhost:4000"
+SERVER_3_URL = "http://localhost:5000"
 
 def limpar_tela():
     """Limpa a tela do terminal para uma visualização mais limpa."""
@@ -87,15 +90,14 @@ def cadastro():
 
     input("Pressione Enter para voltar ao menu principal...")
 
-def ver_trechos():
+def ver_trechos(server_url):
     """Visualiza os trechos disponíveis."""
-    limpar_tela()
     print("="*30)
     print("     TRECHOS DISPONÍVEIS")
     print("="*30)
 
     try:
-        response = requests.get(f"{BASE_URL}/trechos")
+        response = requests.get(f"{server_url}/trechos")
         if response.status_code == 200:
             trechos = response.json()
             for origem, destinos in trechos.items():
@@ -109,8 +111,6 @@ def ver_trechos():
             print(f"Erro ao buscar trechos: {response.json().get('msg', '')}")
     except requests.exceptions.RequestException as e:
         print(f"Erro de conexão: {e}")
-
-    input("Pressione Enter para voltar ao menu principal...")
 
 def ver_passagens_compradas():
     """Visualiza as passagens compradas pelo cliente."""
@@ -247,7 +247,9 @@ def menu_principal():
         if escolha == '1':
             cadastro()
         elif escolha == '2':
-            ver_trechos()
+            ver_trechos(SERVER_1_URL)
+            ver_trechos(SERVER_2_URL)
+            ver_trechos(SERVER_3_URL)
         elif escolha == '3':
             ver_passagens_compradas()
         elif escolha == '4':
@@ -263,7 +265,7 @@ def menu_principal():
             print("Opção inválida, tente novamente.")
             print("="*30)
             input("Pressione Enter para continuar...")
-
+        input("Pressione Enter para voltar ao menu principal...")
 def main():
     """Inicialização do cliente."""
     menu_principal()

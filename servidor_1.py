@@ -7,7 +7,7 @@ import requests
 app = Flask(__name__)
 
 # Caminhos dos arquivos JSON
-CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem.json"
+CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s1.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
 # Lock para sincronização de acesso aos arquivos
