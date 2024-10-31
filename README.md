@@ -3,7 +3,7 @@
 <div id = "introducao"> 
   <h2>Introdução</h2>
   <p>
-    Este relatório apresenta o desenvolvimento de um sistema de compra de passagens, permitindo que clientes realizem consultas e reservas para rotas oferecidas por qualquer companhia em seu respectivo servidor. Para o compartilhamento de informações sobre os trechos, os servidores se comunicam entre si. Assim, foi implementado um sistema de comunicação baseado em TCP/IP, possibilitando que os clientes interajam com um dos servidores de maneira eficiente e direta. Neste projeto, os servidores foram desenvolvidos em Python, utilizando Flask para fornecer endpoints REST, enquanto o cliente usa a biblioteca requests para consumir esses serviços. Os dados são armazenados em arquivos JSON, assegurando a persistência das informações. [FALAR SOBRE CONCORRÊNCIA]
+    Este relatório apresenta o desenvolvimento de um sistema de compra de passagens, permitindo que clientes realizem consultas e reservas para rotas oferecidas por qualquer companhia em seu respectivo servidor. Para o compartilhamento de informações sobre os trechos, os servidores se comunicam entre si. Assim, foi implementado um sistema de comunicação baseado em HTTP, possibilitando que os clientes interajam com um dos servidores de maneira eficiente e direta. Neste projeto, os servidores foram desenvolvidos em Python, utilizando Flask para fornecer endpoints REST, enquanto o cliente usa a biblioteca requests para consumir esses serviços. Os dados são armazenados em arquivos JSON, assegurando a persistência das informações. [FALAR SOBRE CONCORRÊNCIA]
   </p>
 </div>
 
