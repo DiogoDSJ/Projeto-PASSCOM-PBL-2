@@ -14,6 +14,7 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 lock = threading.Lock()
 
 SERVER_2_URL = "http://localhost:4000"
+SERVER_3_URL = "http://localhost:5000"
 
 # Classe Cliente
 class Cliente:
@@ -99,6 +100,31 @@ def salvar_trechos(trechos):
     dados = {"trechos": trechos}
     salvar_json(dados, CAMINHO_TRECHOS)
 
+# Função para extrair as cidades do JSON
+def obter_cidades(dados):
+    cidades = set()
+
+    for origem, destinos in dados["trechos"].items():
+        cidades.add(origem)
+        for destino in destinos.keys():
+            cidades.add(destino)
+
+    return sorted(cidades)
+
+@app.route('/obter_cidades', methods=['GET'])
+def obter_cidades_endpoint():
+    try:
+        # Carrega o conteúdo JSON do arquivo
+        with open("trechos_viagem_s1.json", "r", encoding="utf-8") as file:
+            dados = json.load(file)
+
+        # Obtém a lista de cidades e retorna como JSON
+        cidades = obter_cidades(dados)
+        return jsonify(cidades), 200
+
+    except Exception as e:
+        return jsonify({"msg": "Erro ao obter cidades", "erro": str(e)}), 500
+
 # Endpoint de Cadastro (sem senha)
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
@@ -145,8 +171,7 @@ def comprar_passagem():
     with lock:
         trechos_viagem = carregar_trechos()
         cliente = encontrar_cliente(cpf)
-        if not cliente:
-            return jsonify({"msg": "Cliente não encontrado. Faça o cadastro primeiro."}), 404
+        cadastro()
 
         # Verificar e atualizar vagas
         trecho_copy = caminho.copy()
@@ -187,7 +212,7 @@ def ver_passagens():
         return jsonify({"msg": "Cliente não encontrado"}), 404
     return jsonify(cliente.trechos), 200
 
-# Endpoint para buscar possibilidades de rotas
+
 @app.route('/buscar', methods=['GET'])
 def buscar_rotas():
     origem = request.args.get('origem')
@@ -197,9 +222,27 @@ def buscar_rotas():
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400
 
     trechos_viagem = carregar_trechos()
+    servidores_externos = [SERVER_2_URL, SERVER_3_URL]
 
     rotas = {}
     id_rota = 1
+    @app.route('/obter_trechos', methods=['GET'])
+    def obter_trechos(cidade_atual):
+        # Tenta obter trechos locais primeiro
+        trechos_disponiveis = trechos_viagem.get(cidade_atual, {})
+
+        # Se não houver trechos locais, tenta buscar em servidores externos
+        if not trechos_disponiveis:
+            for url in servidores_externos:
+                try:
+                    response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual})
+                    if response.status_code == 200:
+                        trechos_disponiveis = response.json()
+                        if trechos_disponiveis:
+                            break
+                except requests.RequestException:
+                    continue
+        return trechos_disponiveis
 
     def dfs(cidade_atual, caminho, visitados, preco_total):
         nonlocal id_rota
@@ -210,15 +253,18 @@ def buscar_rotas():
             rotas[id_rota] = {"caminho": caminho.copy(), "preco_total": preco_total}
             id_rota += 1
         else:
-            for vizinho, info in trechos_viagem.get(cidade_atual, {}).items():
+            trechos_disponiveis = obter_trechos(cidade_atual)
+
+            for vizinho, info in trechos_disponiveis.items():
                 if info["vagas"] > 0 and vizinho not in visitados:
-                    dfs(vizinho, caminho, visitados, preco_total + info.get("preco", 0))  # Supondo que há um campo 'preco'
+                    dfs(vizinho, caminho, visitados, preco_total + info.get("preco", 0))
 
         caminho.pop()
         visitados.remove(cidade_atual)
 
     dfs(origem, [], set(), 0)
     return jsonify(rotas), 200
+
 
 # Inicialização dos arquivos JSON se não existirem
 def inicializar_arquivos():

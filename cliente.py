@@ -21,81 +21,46 @@ def exibir_menu_principal():
     print("="*30)
     print("       MENU PRINCIPAL")
     print("="*30)
-    print("1. Cadastro")
-    print("2. Ver Trechos Disponíveis")
-    print("3. Ver Passagens Compradas")
-    print("4. Comprar Passagem")
-    print("5. Sair")
+    print("1. Ver Trechos Disponíveis")
+    print("2. Ver Passagens Compradas")
+    print("3. Comprar Passagem")
+    print("4. Sair")
     print("="*30)
 
 def print_cidades():
     """Imprime as cidades disponíveis para escolha."""
-    cidades = [
-        "1. São Paulo, SP",
-        "2. Rio de Janeiro, RJ",
-        "3. Brasília, DF",
-        "4. Salvador, BA",
-        "5. Fortaleza, CE",
-        "6. Belo Horizonte, MG",
-        "7. Recife, PE",
-        "8. Porto Alegre, RS",
-        "9. Curitiba, PR",
-        "10. Manaus, AM"
-    ]
-    for cidade in cidades:
-        print(cidade)
+    cidades = set()  # Usamos um set para garantir que as cidades não se repitam
 
-def selecionar_cidade(opcao):
+    # Lista de URLs dos servidores
+    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+
+    for servidor in servidores:
+        try:
+            response = requests.get(f"{servidor}/obter_cidades")
+            if response.status_code == 200:
+                # Adiciona cada cidade à lista de cidades únicas
+                cidades.update(response.json())
+        except requests.RequestException as e:
+            print(f"Erro ao conectar com o servidor {servidor}: {e}")
+
+    # Converte para lista e ordena as cidades antes de imprimir
+    cidades = sorted(cidades)
+    
+    # Imprime cada cidade
+    for indice, cidade in enumerate(cidades, start=1):
+        print(f"{indice}. {cidade}")
+        
+    return cidades
+
+def selecionar_cidade(indice, cidades):
     """Seleciona a cidade com base na opção escolhida."""
-    switch_origem = {
-        1: "São Paulo-SP",
-        2: "Rio de Janeiro-RJ",
-        3: "Brasília-DF",
-        4: "Salvador-BA",
-        5: "Fortaleza-CE",
-        6: "Belo Horizonte-MG",
-        7: "Recife-PE",
-        8: "Porto Alegre-RS",
-        9: "Curitiba-PR",
-        10: "Manaus-AM"
-    }
-    return switch_origem.get(opcao, None)
-
-def cadastro():
-    """Realiza o cadastro de um novo cliente."""
-    limpar_tela()
-    print("="*30)
-    print("       CADASTRO")
-    print("="*30)
-    cpf = input("Insira seu CPF (11 dígitos): ").strip()
-    if not cpf.isdigit() or len(cpf) != 11:
-        print("CPF inválido. Deve conter exatamente 11 dígitos.")
-        input("Pressione Enter para voltar ao menu principal...")
-        return
-
-    payload = {
-        "cpf": cpf
-    }
-
-    try:
-        response = requests.post(f"{BASE_URL}/cadastro", json=payload)
-        if response.status_code == 201:
-            print("Cadastro realizado com sucesso!")
-        elif response.status_code == 409:
-            print("Cliente já existe.")
-        else:
-            print(f"Erro no cadastro: {response.json().get('msg', '')}")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro de conexão: {e}")
-
-    input("Pressione Enter para voltar ao menu principal...")
+    if 1 <= indice <= len(cidades):
+        return cidades[indice - 1]  # Ajusta o índice para o padrão 0-baseado
+    else:
+        raise IndexError("Índice fora do intervalo da lista.")
 
 def ver_trechos(server_url):
     """Visualiza os trechos disponíveis."""
-    print("="*30)
-    print("     TRECHOS DISPONÍVEIS")
-    print("="*30)
-
     try:
         response = requests.get(f"{server_url}/trechos")
         if response.status_code == 200:
@@ -156,10 +121,10 @@ def comprar_passagem():
         return
 
     print("Escolha a origem:")
-    print_cidades()
+    cidades = print_cidades()
     try:
         opcao_origem = int(input("Escolha a opção de origem (1-10): ").strip())
-        cidade_origem = selecionar_cidade(opcao_origem)
+        cidade_origem = selecionar_cidade(opcao_origem, cidades)
         if not cidade_origem:
             raise ValueError("Opção de origem inválida.")
     except ValueError:
@@ -175,7 +140,7 @@ def comprar_passagem():
     print_cidades()
     try:
         opcao_destino = int(input("Escolha a opção de destino (1-10): ").strip())
-        cidade_destino = selecionar_cidade(opcao_destino)
+        cidade_destino = selecionar_cidade(opcao_destino, cidades)
         if not cidade_destino:
             raise ValueError("Opção de destino inválida.")
     except ValueError:
@@ -242,19 +207,20 @@ def menu_principal():
     """Função principal que exibe o menu e processa a escolha do usuário."""
     while True:
         exibir_menu_principal()
-        escolha = input("Escolha uma opção (1/2/3/4/5): ").strip()
-
+        escolha = input("Escolha uma opção (1/2/3/4): ").strip()
         if escolha == '1':
-            cadastro()
-        elif escolha == '2':
+            print("="*30)
+            print("     TRECHOS DISPONÍVEIS")
+            print("="*30)
             ver_trechos(SERVER_1_URL)
             ver_trechos(SERVER_2_URL)
             ver_trechos(SERVER_3_URL)
-        elif escolha == '3':
+            input("Pressione Enter para voltar ao menu principal...")
+        elif escolha == '2':
             ver_passagens_compradas()
-        elif escolha == '4':
+        elif escolha == '3':
             comprar_passagem()
-        elif escolha == '5':
+        elif escolha == '4':
             print("="*30)
             print("   Saindo do programa...")
             print("="*30)
@@ -265,7 +231,6 @@ def menu_principal():
             print("Opção inválida, tente novamente.")
             print("="*30)
             input("Pressione Enter para continuar...")
-        input("Pressione Enter para voltar ao menu principal...")
 def main():
     """Inicialização do cliente."""
     menu_principal()
