@@ -122,8 +122,49 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
 <p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "Sim", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "Não" na fase de preparação, a transação entra na fase de Abort, onde os servidores revertam quaisquer alterações temporárias feitas e mantêm os dados em seu estado original. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
 </p>
 
-  
+<div id = "confiabilidade">
+
+  <h2>Confiabilidade da solução</h2>
+
+</div>
+
+<div id = "docker">
+
+  <h2>Emprego do docker</h2>
+
+  <p>A utilização do Docker no sistema é fundamental para garantir um ambiente de desenvolvimento e produção consistente e isolado. Com o Docker, é possível empacotar a aplicação e suas dependências em contêineres, o que simplifica o processo de implantação e garante que o sistema funcione de maneira idêntica em diferentes ambientes. Além disso, o Docker facilita a escalabilidade, permitindo que múltiplos contêineres sejam executados em paralelo para atender a um aumento na demanda, sem comprometer a performance. Essa abordagem também melhora a gestão de recursos, reduzindo conflitos entre serviços e proporcionando uma recuperação mais rápida em caso de falhas. Segue abaixo como executar o sistema:</p>
+
+1. **Construir as imagens Docker:**
+Navegue até a pasta onde o arquivo docker-compose.yml está e execute o seguinte comando
+    ```bash
+    docker compose build
+    ```
+
+3. **Construir contêiner do servidor e executa-lo:**
+    ```bash
+    docker compose up servidor(numero do servidor)
+    ```
+
+**Adicionar clientes:**
+
+3. **Criar contêiner de um único cliente**
+    ```bash
+    docker compose up cliente
+    ```
+
+4. **Criar contêiners de vários clientes**
+    ```bash
+    docker compose up --scale cliente=(número de clientes que deseja)
+    ```
 
 </div> 
+
+<div id = "conclusao">
+
+  <h2>Conclusão</h2>  
+
+  <p>
+  Em conclusão, o sistema de compra de passagens desenvolvido neste projeto demonstra uma abordagem eficiente e robusta para gerenciar reservas de trechos de diferentes companhias aéreas, utilizando um aplicativo cliente e três servidores independentes que podem se interconectar. A implementação do protocolo Two-Phase Commit (2PC), juntamente com mecanismos de bloqueio (locks), assegura a integridade e a consistência dos dados durante operações simultâneas, prevenindo conflitos e garantindo que todas as transações sejam atômicas. A comunicação via HTTP permite uma interação fluida e escalável entre os clientes e servidores, facilitando a realização de consultas e reservas. O uso do Flask para o desenvolvimento dos endpoints REST proporciona uma interface intuitiva e de fácil acesso. Além disso, a adoção do Docker oferece um ambiente controlado e escalável, facilitando a implantação e gestão do sistema em diferentes contextos operacionais. No geral, as soluções implementadas garantem uma experiência segura e confiável para os usuários, permitindo-lhes realizar compras de passagens de maneira ágil e eficiente.</p>
+</div>
 
   
