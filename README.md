@@ -3,7 +3,7 @@
 <div id = "introducao"> 
   <h2>Introdução</h2>
   <p>
-    Este relatório apresenta o desenvolvimento de um sistema de compra de passagens, permitindo que clientes realizem consultas e reservas para rotas oferecidas por qualquer companhia em seu respectivo servidor. Para o compartilhamento de informações sobre os trechos, os servidores se comunicam entre si. Assim, foi implementado um sistema de comunicação baseado em HTTP, possibilitando que os clientes interajam com um dos servidores de maneira eficiente e direta. Neste projeto, os servidores foram desenvolvidos em Python, utilizando Flask para fornecer endpoints REST, enquanto o cliente usa a biblioteca requests para consumir esses serviços. Os dados são armazenados em arquivos JSON, assegurando a persistência das informações. [FALAR SOBRE CONCORRÊNCIA]
+    Este relatório apresenta o desenvolvimento de um sistema de compra de passagens, permitindo que clientes realizem consultas e reservas para rotas oferecidas por qualquer companhia em seu respectivo servidor. Para o compartilhamento de informações sobre os trechos, os servidores se comunicam entre si. Assim, foi implementado um sistema de comunicação baseado em TCP/IP, possibilitando que os clientes interajam com um dos servidores de maneira eficiente e direta. Neste projeto, os servidores foram desenvolvidos em Python, utilizando Flask para fornecer endpoints REST, enquanto o cliente usa a biblioteca requests para consumir esses serviços. Os dados são armazenados em arquivos JSON, assegurando a persistência das informações. O sistema conta também com mecanismos de controle de transações com o protocolo Two-Phase Commit (2PC) e locks para gerenciar a concorrência, garantindo a integridade dos dados durante operações simultâneas. Os resultados gerados demonstram que o sistema consegue gerenciar as reservas de passagens de forma eficiente e descentralizada, possibilitando que os clientes selecionem trechos de diversas companhias e realizem a compra de maneira simples e eficaz. 
   </p>
 </div>
 
@@ -86,3 +86,44 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
     </ul>
   
 </div>
+
+<div id = "roteamento">
+
+  <h2>Roteamento</h2>
+  
+  <p>No sistema, para os servidores individuais, a busca em profundidade (DFS) é usada para explorar todas as rotas possíveis entre uma origem e um destino ao calcular passagens. Esse método funciona percorrendo recursivamente o grafo dos trechos, onde cada cidade representa um nó e cada trecho entre cidades representa uma aresta com uma quantidade limitada de vagas e um custo associado. A DFS inicia na cidade de origem e percorre os trechos disponíveis, acumulando o custo total do caminho e parando ao atingir a cidade de destino. A busca também verifica a disponibilidade de vagas em cada trecho para garantir que a rota seja válida para compra. </p>
+
+<p>Quando um cliente decide comprar uma passagem de um trecho específico, o sistema é projetado para agregar todas as possibilidades de rotas disponíveis, considerando a origem e o destino informados. Inicialmente, a consulta pode ser realizada na companhia A, que verifica a disponibilidade do trecho desejado. Caso o trecho não esteja disponível, o sistema amplia a busca, consultando as companhias B e C por meio de requisições HTTP a seus respectivos endpoints de listagem de trechos.</p>
+
+<p>Essa integração entre as companhias é essencial para enriquecer o catálogo de trechos de viagem disponíveis para compra. Ao coletar informações de diferentes fontes, o app do cliente, ao fazer a solicitação para um servidor, atua como um hub de dados, compilando rotas de várias companhias e apresentando ao cliente todas as opções disponíveis.</p>
+
+</div>
+
+<div id = "concorrencia">
+  <h2>Concorrência distribuida</h2>
+  <p>O sistema de compra de passagens foi projetado utilizando o protocolo de confirmação em duas fases (Two-Phase Commit - 2PC) para gerenciar a concorrência em um ambiente distribuído. O 2PC é um protocolo que assegura a consistência de dados em transações que envolvem múltiplas fontes de dados. Ele garante que uma operação distribuída seja realizada de forma atômica: ou todos os participantes confirmam a execução da operação, ou ela é cancelada para todos, preservando a integridade dos dados. Este protocolo é essencial em sistemas distribuídos, pois ajuda a evitar inconsistências e conflitos que podem surgir devido a falhas de comunicação ou concorrência.</p>
+
+  <p>O sistema consiste em um aplicativo cliente e três servidores (A, B e C), que compartilham informações sobre os trechos de viagem disponíveis. O servidor A atua como coordenador das transações, enquanto os servidores B e C são responsáveis por partes específicas dos dados (considerando que, se o cliente acessar o servidor B, ou C, ele se torna o servidor coordenador da operação). Quando um cliente solicita a compra de uma passagem, ele se conecta ao servidor A, que primeiro verifica a disponibilidade de trechos localmente. Se o trecho solicitado não estiver disponível, o servidor A consulta os servidores B e C. Essa abordagem permite uma gestão eficaz das requisições de compra e assegura a consistência entre os servidores.</p>
+
+  <p>Para coordenar a execução das transações de compra, o protocolo 2PC é complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Essa trava permanece ativa durante as fases de Preparação e Commit do 2PC. Somente após a conclusão da transação, seja pelo commit ou pelo abort, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados. Os servidores respondem “sim” ao coordenador apenas se:
+</p>
+
+<p>1 - Houver disponibilidade das vagas.</p>
+<p>2 - Nenhuma outra operação estiver utilizando os arquivos.</p>
+
+<p>Caso o servidor A não consiga atender à solicitação diretamente, ele inicia uma transação distribuída, consultando os servidores B e C. A compra é efetivada apenas se todos os servidores confirmarem a disponibilidade do trecho. O uso de locks em conjunto com o protocolo 2PC proporciona segurança contra inconsistências e assegura que as operações sejam realizadas de forma atômica, mesmo em cenários com múltiplas consultas simultâneas.
+</p>
+
+<h4>Detalhamento do Caso de Uso:</h4>
+
+<p><strong>1 - Fase de Preparação:</strong> Quando o coordenador inicia a transação, ele solicita que cada servidor trave o acesso ao arquivo de dados que contém os trechos de viagem. Esse lock impede que outros processos ou transações paralelas acessem ou modifiquem o arquivo até que a transação atual seja concluída. Cada servidor verifica sua capacidade de atender à solicitação e responde ao coordenador com "Sim" (se houver disponibilidade e o trecho puder ser reservado) ou "Não" (se não houver disponibilidade). A manutenção do lock nesta fase é crucial para evitar que alterações no número de assentos ocorram simultaneamente, prevenindo conflitos entre transações.
+</p>
+
+<p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "Sim", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "Não" na fase de preparação, a transação entra na fase de Abort, onde os servidores revertam quaisquer alterações temporárias feitas e mantêm os dados em seu estado original. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
+</p>
+
+  
+
+</div> 
+
+  
