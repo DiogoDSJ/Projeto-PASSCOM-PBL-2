@@ -63,7 +63,6 @@ def salvar_clientes(clientes):
 
 def carregar_clientes():
     dados = carregar_json(CAMINHO_CLIENTES)
-    # Retorna uma lista vazia se não houver clientes
     if not isinstance(dados, list):
         print(f"Erro: O arquivo {CAMINHO_CLIENTES} não contém uma lista válida de clientes.")
         return []
@@ -88,7 +87,6 @@ def atualizar_cliente(cliente_atualizado):
             clientes[idx] = cliente_atualizado
             salvar_clientes(clientes)
             return
-    # Se não encontrar, adicionar
     adicionar_cliente(cliente_atualizado)
 
 # Funções para trechos
@@ -100,7 +98,6 @@ def salvar_trechos(trechos):
     dados = {"trechos": trechos}
     salvar_json(dados, CAMINHO_TRECHOS)
 
-# Função para extrair as cidades do JSON
 def obter_cidades(dados):
     cidades = set()
 
@@ -114,27 +111,20 @@ def obter_cidades(dados):
 @app.route('/obter_cidades', methods=['GET'])
 def obter_cidades_endpoint():
     try:
-        # Carrega o conteúdo JSON do arquivo
         with open("trechos_viagem_s2.json", "r", encoding="utf-8") as file:
             dados = json.load(file)
 
-        # Obtém a lista de cidades e retorna como JSON
         cidades = obter_cidades(dados)
         return jsonify(cidades), 200
 
     except Exception as e:
         return jsonify({"msg": "Erro ao obter cidades", "erro": str(e)}), 500
 
-# Rota que lista trechos do Servidor 1
 @app.route('/listar_trechos', methods=['GET'])
 def listar_trechos_s1():
-    # Fazendo a chamada GET para o Servidor 1 para listar trechos
     response = request.get(f"{SERVER_1_URL}/trechos")
-
-    # Retorna a resposta do Servidor 1
     return jsonify(response.json()), response.status_code
 
-# Endpoint de Cadastro (sem senha)
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     data = request.get_json()
@@ -155,15 +145,14 @@ def cadastro():
 
     return jsonify({"msg": "Cadastro realizado com sucesso"}), 201
 
-# Endpoint para listar trechos disponíveis
 @app.route('/trechos', methods=['GET'])
 def listar_trechos():
     trechos = carregar_trechos()
     return jsonify(trechos), 200
 
-# Endpoint para comprar passagem (solicita CPF no momento da compra)
+# Endpoint para preparar a compra da passagem
 @app.route('/comprar', methods=['POST'])
-def comprar_passagem():
+def preparar_compra():
     data = request.get_json()
     caminho = data.get('caminho')  # Lista de cidades, ex: ["CidadeA", "CidadeB", "CidadeC"]
     cpf = data.get('cpf')
@@ -180,10 +169,8 @@ def comprar_passagem():
     with lock:
         trechos_viagem = carregar_trechos()
         cliente = encontrar_cliente(cpf)
-        if not cliente:
-            return jsonify({"msg": "Cliente não encontrado. Faça o cadastro primeiro."}), 404
 
-        # Verificar e atualizar vagas
+        # Verificar a disponibilidade de passagens
         trecho_copy = caminho.copy()
         sucesso = True
         for i in range(len(trecho_copy)-1):
@@ -195,19 +182,36 @@ def comprar_passagem():
             if trechos_viagem[origem][destino]["vagas"] < 1:
                 sucesso = False
                 break
-            trechos_viagem[origem][destino]["vagas"] -= 1
 
         if sucesso:
-            salvar_trechos(trechos_viagem)
-            # Adicionar passagem ao cliente
-            novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
-            cliente.trechos[str(novo_id)] = caminho
-            atualizar_cliente(cliente)
-            return jsonify({"msg": "Passagem comprada com sucesso"}), 200
+            # Fase de preparação: notificar outros servidores
+            try:
+                prepare_responses = []
+                for url in [SERVER_1_URL, SERVER_3_URL]:
+                    response = requests.post(f"{url}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    prepare_responses.append(response)
+
+                # Verificar se todos os servidores responderam com sucesso
+                if all(resp.status_code == 200 for resp in prepare_responses):
+                    # Fase de commit
+                    for url in [SERVER_1_URL, SERVER_3_URL]:
+                        requests.post(f"{url}/commit", json={"caminho": caminho, "cpf": cpf})
+                    # Adicionar passagem ao cliente
+                    novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
+                    cliente.trechos[str(novo_id)] = caminho
+                    atualizar_cliente(cliente)
+                    return jsonify({"msg": "Passagem comprada com sucesso"}), 200
+                else:
+                    # Se algum servidor falhar, faz rollback
+                    for url in [SERVER_1_URL, SERVER_3_URL]:
+                        requests.post(f"{url}/rollback", json={"caminho": caminho, "cpf": cpf})
+                    return jsonify({"msg": "Compra cancelada, não foi possível concluir a transação"}), 400
+
+            except requests.RequestException:
+                return jsonify({"msg": "Erro ao comunicar com os servidores externos."}), 500
         else:
             return jsonify({"msg": "Passagem não disponível"}), 400
 
-# Endpoint para ver passagens compradas
 @app.route('/passagens', methods=['GET'])
 def ver_passagens():
     cpf = request.args.get('cpf')
@@ -219,10 +223,10 @@ def ver_passagens():
 
     cliente = encontrar_cliente(cpf)
     if not cliente:
-        return jsonify({"msg": "Cliente não encontrado"}), 404
+        return jsonify({"msg": "Cliente não encontrado."}), 404
+
     return jsonify(cliente.trechos), 200
 
-# Endpoint para buscar possibilidades de rotas
 @app.route('/buscar', methods=['GET'])
 def buscar_rotas():
     origem = request.args.get('origem')
@@ -232,28 +236,11 @@ def buscar_rotas():
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400
 
     trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_1_URL, SERVER_3_URL]
+    servidores_externos = [SERVER_3_URL, SERVER_1_URL]
 
     rotas = {}
     id_rota = 1
-    @app.route('/obter_trechos', methods=['GET'])
-    def obter_trechos(cidade_atual):
-        # Tenta obter trechos locais primeiro
-        trechos_disponiveis = trechos_viagem.get(cidade_atual, {})
-
-        # Se não houver trechos locais, tenta buscar em servidores externos
-        if not trechos_disponiveis:
-            for url in servidores_externos:
-                try:
-                    response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual})
-                    if response.status_code == 200:
-                        trechos_disponiveis = response.json()
-                        if trechos_disponiveis:
-                            break
-                except requests.RequestException:
-                    continue
-        return trechos_disponiveis
-
+    
     def dfs(cidade_atual, caminho, visitados, preco_total):
         nonlocal id_rota
         caminho.append(cidade_atual)
@@ -263,7 +250,7 @@ def buscar_rotas():
             rotas[id_rota] = {"caminho": caminho.copy(), "preco_total": preco_total}
             id_rota += 1
         else:
-            trechos_disponiveis = obter_trechos(cidade_atual)
+            trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
 
             for vizinho, info in trechos_disponiveis.items():
                 if info["vagas"] > 0 and vizinho not in visitados:
@@ -275,20 +262,81 @@ def buscar_rotas():
     dfs(origem, [], set(), 0)
     return jsonify(rotas), 200
 
-# Inicialização dos arquivos JSON se não existirem
-def inicializar_arquivos():
-    with lock:
-        # Criação do arquivo clientes.json se não existir
-        if not CAMINHO_CLIENTES.exists():
-            try:
-                salvar_json([], CAMINHO_CLIENTES)
-                print(f"Arquivo {CAMINHO_CLIENTES} criado com sucesso.")
-            except Exception as e:
-                print(f"Erro ao criar {CAMINHO_CLIENTES}: {e}")
+@app.route('/obter_trechos', methods=['GET'])
+def obter_trechos():
+    cidade_atual = request.args.get('cidade')
+    if not cidade_atual:
+        return jsonify({"msg": "Cidade não informada"}), 400
 
-        # Criação do arquivo trechos_viagem.json se não existir
-        if not CAMINHO_TRECHOS.exists():
-            trechos_exemplo = {
+    trechos_viagem = carregar_trechos()
+    servidores_externos = [SERVER_1_URL, SERVER_3_URL]
+
+    trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
+    return jsonify(trechos_disponiveis), 200
+
+def obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos):
+    # Tenta obter trechos locais primeiro
+    trechos_disponiveis = trechos_viagem.get(cidade_atual, {})
+
+    # Se não houver trechos locais, tenta buscar em servidores externos
+    if not trechos_disponiveis:
+        for url in servidores_externos:
+            try:
+                response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual})
+                if response.status_code == 200:
+                    trechos_disponiveis = response.json()
+                    if trechos_disponiveis:
+                        break
+            except requests.RequestException:
+                continue
+
+    return trechos_disponiveis
+
+
+
+# Fase de preparação (para outros servidores)
+@app.route('/prepare', methods=['POST'])
+def prepare():
+    data = request.get_json()
+    caminho = data.get('caminho')
+    cpf = data.get('cpf')
+
+    # Verificar disponibilidade e preparar a compra
+    trechos_viagem = carregar_trechos()
+    sucesso = True
+
+    try :
+
+        if lock.acquire(blocking=False):
+            return jsonify({"status": "prepare"}), 200
+        else:
+            return jsonify({"status": "Passagem não disponível"}), 400
+    finally:
+        lock.release()  # Libera o lock após a verificação
+
+# Fase de commit (para outros servidores)
+@app.route('/commit', methods=['POST'])
+def commit():
+    data = request.get_json()
+    caminho = data.get('caminho')
+    cpf = data.get('cpf')
+
+    # Aqui seria a lógica para efetivamente reservar as passagens
+    trechos_viagem = carregar_trechos()
+    for i in range(len(caminho) - 1):
+        origem = caminho[i]
+        destino = caminho[i + 1]
+        if origem in trechos_viagem and destino in trechos_viagem[origem]:
+            trechos_viagem[origem][destino]["vagas"] -= 1
+
+    salvar_trechos(trechos_viagem)
+    return jsonify({"msg": "Compra confirmada"}), 200
+
+
+
+def inicializar_arquivos():
+    if not CAMINHO_TRECHOS.exists():
+        salvar_trechos({
                 "São Paulo-SP": {
                     "Rio de Janeiro-RJ": {"vagas": 10, "preco": 100},
                     "Brasília-DF": {"vagas": 5, "preco": 150}
@@ -321,19 +369,13 @@ def inicializar_arquivos():
                 "Belo Horizonte-MG": {
                     "São Paulo-SP": {"vagas": 7, "preco": 85}
                 }
-            }
-            try:
-                salvar_trechos(trechos_exemplo)
-                print(f"Arquivo {CAMINHO_TRECHOS} criado com sucesso com trechos de exemplo.")
-            except Exception as e:
-                print(f"Erro ao criar {CAMINHO_TRECHOS}: {e}")
+            })
+    if not CAMINHO_CLIENTES.exists():
+        salvar_clientes([])
 
-
-
-
-# Executa a inicialização dos arquivos
+# Inicializa os arquivos ao iniciar o servidor
 inicializar_arquivos()
 
-# Executar a aplicação
 if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+    inicializar_arquivos()  # Inicializa os arquivos ao iniciar o servidor
+    app.run(port=4000, debug=True)

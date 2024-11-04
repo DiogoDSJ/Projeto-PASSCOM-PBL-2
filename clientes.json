@@ -17,5 +17,18 @@
                 "Fortaleza-CE"
             ]
         }
+    },
+    {
+        "cpf": "11111111111",
+        "trechos": {
+            "1": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "2": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ]
+        }
     }
 ]

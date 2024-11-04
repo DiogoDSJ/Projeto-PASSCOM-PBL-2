@@ -77,6 +77,8 @@ def ver_trechos(server_url):
     except requests.exceptions.RequestException as e:
         print(f"Erro de conexão: {e}")
 
+    
+
 def ver_passagens_compradas():
     """Visualiza as passagens compradas pelo cliente."""
     limpar_tela()
@@ -123,11 +125,9 @@ def comprar_passagem():
     print("Escolha a origem:")
     cidades = print_cidades()
     try:
-        opcao_origem = int(input("Escolha a opção de origem (1-10): ").strip())
+        opcao_origem = int(input("Escolha a opção de origem: ").strip())
         cidade_origem = selecionar_cidade(opcao_origem, cidades)
-        if not cidade_origem:
-            raise ValueError("Opção de origem inválida.")
-    except ValueError:
+    except (ValueError, IndexError):
         print("Opção de origem inválida.")
         input("Pressione Enter para voltar ao menu principal...")
         return
@@ -139,11 +139,9 @@ def comprar_passagem():
     print("Escolha o destino:")
     print_cidades()
     try:
-        opcao_destino = int(input("Escolha a opção de destino (1-10): ").strip())
+        opcao_destino = int(input("Escolha a opção de destino: ").strip())
         cidade_destino = selecionar_cidade(opcao_destino, cidades)
-        if not cidade_destino:
-            raise ValueError("Opção de destino inválida.")
-    except ValueError:
+    except (ValueError, IndexError):
         print("Opção de destino inválida.")
         input("Pressione Enter para voltar ao menu principal...")
         return
@@ -159,6 +157,7 @@ def comprar_passagem():
         if response.status_code == 200:
             rotas = response.json()
             if not rotas:
+            
                 print("Não há rotas disponíveis para essa viagem.")
                 input("Pressione Enter para voltar ao menu principal...")
                 return
@@ -168,7 +167,7 @@ def comprar_passagem():
                 trajeto = " -> ".join(detalhes['caminho'])
                 preco_total = detalhes['preco_total']
                 print(f"{id_rota}. {trajeto} | Preço Total: R${preco_total}")
-            print(rotas)
+
             # Escolha da rota
             escolha_rota = input("\nEscolha a rota desejada (número) ou digite 'cancelar' para abortar: ").strip()
             if escolha_rota.lower() == 'cancelar':
@@ -183,7 +182,7 @@ def comprar_passagem():
 
             rota_escolhida = rotas[escolha_rota]['caminho']
 
-            # Envio da requisição de compra
+            # Inicia o processo 2PC com os servidores
             payload = {
                 "caminho": rota_escolhida,
                 "cpf": cpf  # Adiciona o CPF na payload
@@ -200,40 +199,34 @@ def comprar_passagem():
 
     except requests.exceptions.RequestException as e:
         print(f"Erro de conexão: {e}")
+            
+
+
 
     input("Pressione Enter para voltar ao menu principal...")
 
-def menu_principal():
-    """Função principal que exibe o menu e processa a escolha do usuário."""
+def main():
+    """Função principal do cliente."""
     while True:
         exibir_menu_principal()
-        escolha = input("Escolha uma opção (1/2/3/4): ").strip()
-        if escolha == '1':
-            print("="*30)
-            print("     TRECHOS DISPONÍVEIS")
-            print("="*30)
+        opcao = input("Escolha uma opção: ").strip()
+        if opcao == "1":
+            print("SERVER 1\n")
             ver_trechos(SERVER_1_URL)
+            print("SERVER 2\n")
             ver_trechos(SERVER_2_URL)
-            ver_trechos(SERVER_3_URL)
+            print("SERVER 3\n")
+            ver_trechos(SERVER_3_URL)       
             input("Pressione Enter para voltar ao menu principal...")
-        elif escolha == '2':
+        elif opcao == "2":
             ver_passagens_compradas()
-        elif escolha == '3':
+        elif opcao == "3":
             comprar_passagem()
-        elif escolha == '4':
-            print("="*30)
-            print("   Saindo do programa...")
-            print("="*30)
-            sys.exit()
+        elif opcao == "4":
+            print("Saindo do sistema...")
+            sys.exit(0)
         else:
-            limpar_tela()
-            print("="*30)
-            print("Opção inválida, tente novamente.")
-            print("="*30)
-            input("Pressione Enter para continuar...")
-def main():
-    """Inicialização do cliente."""
-    menu_principal()
+            print("Opção inválida. Tente novamente.")
 
 if __name__ == "__main__":
     main()
