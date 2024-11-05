@@ -40,8 +40,9 @@ def print_cidades():
             if response.status_code == 200:
                 # Adiciona cada cidade à lista de cidades únicas
                 cidades.update(response.json())
+                break
         except requests.RequestException as e:
-            print(f"Erro ao conectar com o servidor {servidor}: {e}")
+            print(f"Erro ao conectar com o servidor {servidor}")
 
     # Converte para lista e ordena as cidades antes de imprimir
     cidades = sorted(cidades)

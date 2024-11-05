@@ -158,25 +158,24 @@ def salvar_trechos(trechos):
     salvar_json(dados, CAMINHO_TRECHOS)
 
 # Função para extrair as cidades do JSON
-def obter_cidades(dados):
-    cidades = set()
-    for origem, destinos in dados["trechos"].items():
-        cidades.add(origem)
-        for destino in destinos.keys():
-            cidades.add(destino)
-    return sorted(cidades)
-
 
 @app.route('/obter_cidades', methods=['GET'])
 def obter_cidades_endpoint():
     try:
-        # Carrega o conteúdo JSON do arquivo
-        with open("trechos_viagem_s1.json", "r", encoding="utf-8") as file:
-            dados = json.load(file)
+        # Carrega os trechos de cada servidor
+        dados_servidor1 = carregar_trechos("server1")
+        dados_servidor2 = carregar_trechos("server2")
+        dados_servidor3 = carregar_trechos("server3")
 
-        # Obtém a lista de cidades e retorna como JSON
-        cidades = obter_cidades(dados)
-        return jsonify(cidades), 200
+        # Combina os dados de todos os servidores
+        todas_cidades = set()
+        
+        for dados in [dados_servidor1, dados_servidor2, dados_servidor3]:
+            todas_cidades.update(dados.keys())  # Adiciona as cidades de origem
+            for destinos in dados.values():
+                todas_cidades.update(destinos.keys())  # Adiciona as cidades de destino
+
+        return jsonify(sorted(todas_cidades)), 200
 
     except Exception as e:
         return jsonify({"msg": "Erro ao obter cidades", "erro": str(e)}), 500
