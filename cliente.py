@@ -153,21 +153,23 @@ def comprar_passagem():
         "origem": cidade_origem,
         "destino": cidade_destino
     }
+    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    i = 0
     try:
-        response = requests.get(f"{BASE_URL}/buscar", params=params)
+        response = requests.get(f"{servidores[i]}/buscar", params=params)
         if response.status_code == 200:
             rotas = response.json()
             if not rotas:
                 print("Não há rotas disponíveis para essa viagem.")
                 input("Pressione Enter para voltar ao menu principal...")
                 return
-
-
-        if rotas is None:
-            print("Não há rotas disponíveis para essa viagem.")
+        else:
+            print("Servidor indisponivel, tentando em outro...")
+            i = i+1
+        if(i == 4):
+            print("Não há servidor disponível.")
             input("Pressione Enter para voltar ao menu principal...")
             return
-
         print("\nRotas disponíveis:")
         for id_rota, detalhes in rotas.items():
             trajeto = " -> ".join(detalhes['caminho'])
