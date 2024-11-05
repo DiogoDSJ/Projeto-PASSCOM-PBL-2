@@ -2,70 +2,82 @@
     "trechos": {
         "São Paulo-SP": {
             "Rio de Janeiro-RJ": {
-                "vagas": 10,
-                "preco": 100
+                "vagas": 8,
+                "preco": 100,
+                "server_id": "server1"
             },
             "Brasília-DF": {
                 "vagas": 5,
-                "preco": 150
+                "preco": 150,
+                "server_id": "server1"
             }
         },
         "Rio de Janeiro-RJ": {
             "Brasília-DF": {
-                "vagas": 8,
-                "preco": 80
+                "vagas": 7,
+                "preco": 80,
+                "server_id": "server1"
             },
             "Salvador-BA": {
-                "vagas": 2,
-                "preco": 120
+                "vagas": 1,
+                "preco": 120,
+                "server_id": "server1"
             }
         },
         "Brasília-DF": {
             "Salvador-BA": {
-                "vagas": 4,
-                "preco": 90
+                "vagas": 3,
+                "preco": 90,
+                "server_id": "server1"
             }
         },
         "Salvador-BA": {
             "Fortaleza-CE": {
                 "vagas": 3,
-                "preco": 110
+                "preco": 110,
+                "server_id": "server1"
             }
         },
         "Fortaleza-CE": {
             "Recife-PE": {
                 "vagas": 6,
-                "preco": 70
+                "preco": 70,
+                "server_id": "server1"
             }
         },
         "Recife-PE": {
             "Porto Alegre-RS": {
                 "vagas": 2,
-                "preco": 130
+                "preco": 130,
+                "server_id": "server1"
             }
         },
         "Porto Alegre-RS": {
             "Curitiba-PR": {
                 "vagas": 5,
-                "preco": 95
+                "preco": 95,
+                "server_id": "server1"
             }
         },
         "Curitiba-PR": {
             "Manaus-AM": {
                 "vagas": 1,
-                "preco": 200
+                "preco": 200,
+                "server_id": "server1"
             }
         },
         "Manaus-AM": {
             "Belo Horizonte-MG": {
                 "vagas": 4,
-                "preco": 160
+                "preco": 160,
+                "server_id": "server1"
             }
         },
         "Belo Horizonte-MG": {
             "São Paulo-SP": {
                 "vagas": 7,
-                "preco": 85
+                "preco": 85,
+                "server_id": "server1"
             }
         }
     }

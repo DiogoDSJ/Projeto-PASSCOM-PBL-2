@@ -2,64 +2,75 @@
     "trechos": {
         "São Paulo-SP": {
             "Rio de Janeiro-RJ": {
-                "vagas": 12,
-                "preco": 120
+                "vagas": 10,
+                "preco": 120,
+                "server_id": "server3"
             },
             "Curitiba-PR": {
                 "vagas": 8,
-                "preco": 90
+                "preco": 90,
+                "server_id": "server3"
             }
         },
         "Rio de Janeiro-RJ": {
             "Belo Horizonte-MG": {
                 "vagas": 10,
-                "preco": 80
+                "preco": 80,
+                "server_id": "server3"
             },
             "Salvador-BA": {
                 "vagas": 5,
-                "preco": 150
+                "preco": 150,
+                "server_id": "server3"
             }
         },
         "Curitiba-PR": {
             "Florianópolis-SC": {
                 "vagas": 12,
-                "preco": 60
+                "preco": 60,
+                "server_id": "server3"
             }
         },
         "Belo Horizonte-MG": {
             "Recife-PE": {
                 "vagas": 4,
-                "preco": 200
+                "preco": 200,
+                "server_id": "server3"
             }
         },
         "Salvador-BA": {
             "Fortaleza-CE": {
                 "vagas": 3,
-                "preco": 110
+                "preco": 110,
+                "server_id": "server3"
             }
         },
         "Fortaleza-CE": {
             "Natal-RN": {
                 "vagas": 6,
-                "preco": 75
+                "preco": 75,
+                "server_id": "server3"
             }
         },
         "Recife-PE": {
             "João Pessoa-PB": {
                 "vagas": 5,
-                "preco": 50
+                "preco": 50,
+                "server_id": "server3"
             }
         },
         "Natal-RN": {
             "São Luís-MA": {
                 "vagas": 2,
-                "preco": 180
+                "preco": 180,
+                "server_id": "server3"
             }
         },
         "São Luís-MA": {
             "Belém-PA": {
                 "vagas": 4,
-                "preco": 150
+                "preco": 150,
+                "server_id": "server3"
             }
         }
     }
