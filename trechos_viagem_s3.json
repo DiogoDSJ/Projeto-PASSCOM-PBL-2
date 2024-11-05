@@ -22,12 +22,22 @@
                 "vagas": 5,
                 "preco": 150,
                 "server_id": "server3"
+            },
+            "São Paulo-SP": {
+                "vagas": 7,
+                "preco": 130,
+                "server_id": "server3"
             }
         },
         "Curitiba-PR": {
             "Florianópolis-SC": {
                 "vagas": 12,
                 "preco": 60,
+                "server_id": "server3"
+            },
+            "São Paulo-SP": {
+                "vagas": 5,
+                "preco": 70,
                 "server_id": "server3"
             }
         },
@@ -36,12 +46,22 @@
                 "vagas": 4,
                 "preco": 200,
                 "server_id": "server3"
+            },
+            "Rio de Janeiro-RJ": {
+                "vagas": 3,
+                "preco": 90,
+                "server_id": "server3"
             }
         },
         "Salvador-BA": {
             "Fortaleza-CE": {
                 "vagas": 3,
                 "preco": 110,
+                "server_id": "server3"
+            },
+            "Rio de Janeiro-RJ": {
+                "vagas": 6,
+                "preco": 160,
                 "server_id": "server3"
             }
         },
@@ -50,12 +70,22 @@
                 "vagas": 6,
                 "preco": 75,
                 "server_id": "server3"
+            },
+            "Salvador-BA": {
+                "vagas": 4,
+                "preco": 100,
+                "server_id": "server3"
             }
         },
         "Recife-PE": {
             "João Pessoa-PB": {
                 "vagas": 5,
                 "preco": 50,
+                "server_id": "server3"
+            },
+            "Belo Horizonte-MG": {
+                "vagas": 3,
+                "preco": 110,
                 "server_id": "server3"
             }
         },
@@ -64,12 +94,43 @@
                 "vagas": 2,
                 "preco": 180,
                 "server_id": "server3"
+            },
+            "Fortaleza-CE": {
+                "vagas": 3,
+                "preco": 50,
+                "server_id": "server3"
             }
         },
         "São Luís-MA": {
             "Belém-PA": {
                 "vagas": 4,
                 "preco": 150,
+                "server_id": "server3"
+            },
+            "Natal-RN": {
+                "vagas": 2,
+                "preco": 170,
+                "server_id": "server3"
+            }
+        },
+        "Belém-PA": {
+            "São Luís-MA": {
+                "vagas": 3,
+                "preco": 160,
+                "server_id": "server3"
+            }
+        },
+        "Florianópolis-SC": {
+            "Curitiba-PR": {
+                "vagas": 5,
+                "preco": 70,
+                "server_id": "server3"
+            }
+        },
+        "João Pessoa-PB": {
+            "Recife-PE": {
+                "vagas": 4,
+                "preco": 40,
                 "server_id": "server3"
             }
         }

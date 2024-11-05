@@ -14,13 +14,18 @@
         },
         "Vitória-ES": {
             "Rio de Janeiro-RJ": {
-                "vagas": 7,
+                "vagas": 2,
                 "preco": 70,
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 160,
+                "server_id": "server2"
+            },
+            "Belo Horizonte-MG": {
+                "vagas": 8,
+                "preco": 100,
                 "server_id": "server2"
             }
         },
@@ -34,12 +39,22 @@
                 "vagas": 3,
                 "preco": 180,
                 "server_id": "server2"
+            },
+            "Belo Horizonte-MG": {
+                "vagas": 6,
+                "preco": 120,
+                "server_id": "server2"
             }
         },
         "Curitiba-PR": {
             "Florianópolis-SC": {
                 "vagas": 6,
                 "preco": 80,
+                "server_id": "server2"
+            },
+            "São Paulo-SP": {
+                "vagas": 5,
+                "preco": 110,
                 "server_id": "server2"
             }
         },
@@ -48,12 +63,22 @@
                 "vagas": 4,
                 "preco": 30,
                 "server_id": "server2"
+            },
+            "São Paulo-SP": {
+                "vagas": 2,
+                "preco": 150,
+                "server_id": "server2"
             }
         },
         "Salvador-BA": {
             "Aracaju-SE": {
                 "vagas": 2,
                 "preco": 90,
+                "server_id": "server2"
+            },
+            "Vitória-ES": {
+                "vagas": 3,
+                "preco": 100,
                 "server_id": "server2"
             }
         },
@@ -62,6 +87,11 @@
                 "vagas": 4,
                 "preco": 65,
                 "server_id": "server2"
+            },
+            "Salvador-BA": {
+                "vagas": 3,
+                "preco": 80,
+                "server_id": "server2"
             }
         },
         "Maceió-AL": {
@@ -69,12 +99,36 @@
                 "vagas": 7,
                 "preco": 55,
                 "server_id": "server2"
+            },
+            "Aracaju-SE": {
+                "vagas": 5,
+                "preco": 70,
+                "server_id": "server2"
             }
         },
         "Recife-PE": {
             "João Pessoa-PB": {
                 "vagas": 6,
                 "preco": 45,
+                "server_id": "server2"
+            },
+            "Maceió-AL": {
+                "vagas": 4,
+                "preco": 60,
+                "server_id": "server2"
+            }
+        },
+        "João Pessoa-PB": {
+            "Recife-PE": {
+                "vagas": 5,
+                "preco": 40,
+                "server_id": "server2"
+            }
+        },
+        "Florianópolis-SC": {
+            "Curitiba-PR": {
+                "vagas": 5,
+                "preco": 50,
                 "server_id": "server2"
             }
         }
