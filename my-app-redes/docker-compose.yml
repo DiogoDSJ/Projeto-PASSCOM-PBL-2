@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  servidor1:
+    build:
+      context: ./servidor1  # Caminho para o diretório onde está o Dockerfile do servidor
+      dockerfile: Dockerfile  
+    container_name: cont-servidor
+    ports:
+      - "0.0.0.0:3000:3000"
+    volumes:
+      - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
+    networks:
+      - mynetwork
+
+    stdin_open: true  # Similar ao -i
+    tty: true
+  
+  servidor2:
+    build:
+      context: ./servidor2  # Caminho para o diretório onde está o Dockerfile do servidor
+      dockerfile: Dockerfile  
+    container_name: cont-servidor
+    ports:
+      - "0.0.0.0:4000:4000"
+    volumes:
+      - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
+    networks:
+      - mynetwork
+
+    stdin_open: true  # Similar ao -i
+    tty: true
+
+  servidor3:
+    build:
+      context: ./servidor3  # Caminho para o diretório onde está o Dockerfile do servidor
+      dockerfile: Dockerfile  
+    container_name: cont-servidor
+    ports:
+      - "0.0.0.0:5000:5000"
+    volumes:
+      - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
+    networks:
+      - mynetwork
+
+    stdin_open: true  # Similar ao -i
+    tty: true
+
+  cliente:
+    build:
+      context: ./cliente  # Caminho para o diretório onde está o Dockerfile do cliente
+      dockerfile: Dockerfile 
+    networks:
+      - mynetwork
+
+    stdin_open: true  # Similar ao -i
+    tty: true
+
+networks:
+   mynetwork:
+     driver: bridge
