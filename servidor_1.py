@@ -12,7 +12,7 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
-
+SERVER_1_URL = "http://localhost:3000"
 SERVER_2_URL = "http://localhost:4000"
 SERVER_3_URL = "http://localhost:5000"
 
@@ -34,6 +34,10 @@ class Cliente:
             cpf=data['cpf'],
             trechos=data.get('trechos', {})
         )
+
+# saber em qual servidor está
+def get_server():
+   return "server1"
 
 # Funções auxiliares para manipulação de JSON
 def salvar_json(dados, caminho_arquivo):
@@ -90,6 +94,20 @@ def atualizar_cliente(cliente_atualizado):
             return
     # Se não encontrar, adicionar
     adicionar_cliente(cliente_atualizado)
+
+@app.route('/remover_vaga', methods=['POST'])
+def remover_uma_vaga():
+    data = request.get_json()
+    origem = data.get("origem")
+    destino = data.get("destino")
+    
+    trechos_viagem = carregar_trechos()
+    if(trechos_viagem[origem][destino]["vagas"] > 0):
+        trechos_viagem[origem][destino]["vagas"] -= 1
+        salvar_trechos(trechos_viagem)
+        return jsonify({"msg": "Vaga removida com sucesso"}), 200
+    else:
+        return jsonify({"msg": "Erro na remocao da vaga"}), 400
 
 # Funções para trechos
 def carregar_trechos():
@@ -157,7 +175,7 @@ def preparar_compra():
     data = request.get_json()
     caminho = data.get('caminho')  # Lista de cidades, ex: ["CidadeA", "CidadeB", "CidadeC"]
     cpf = data.get('cpf')
-
+    servidores = data.get('servidores')
     if not caminho or not isinstance(caminho, list) or len(caminho) < 2:
         return jsonify({"msg": "Caminho inválido"}), 400
 
@@ -166,11 +184,13 @@ def preparar_compra():
 
     if not cpf.isdigit() or len(cpf) != 11:
         return jsonify({"msg": "CPF inválido. Deve conter exatamente 11 dígitos."}), 400
-
+    print(f"servidores1{servidores}")
     with lock:
         trechos_viagem = carregar_trechos()
         cliente = encontrar_cliente(cpf)
-
+        server1 = False
+        server2 = False
+        server3 = False
         # Verificar a disponibilidade de passagens
         trecho_copy = caminho.copy()
         sucesso = True
@@ -183,32 +203,50 @@ def preparar_compra():
             if trechos_viagem[origem][destino]["vagas"] < 1:
                 sucesso = False
                 break
-
+        # Verificar de que servidor vieram os trechos que fazem o caminho
+        for servidor in servidores:
+            if(servidor == "server1"):
+                server1 = True
+            elif(servidor == "server2"):
+                server2 = True
+            elif(servidor == "server3"):
+                server3 = True
         if sucesso:
             # Fase de preparação: notificar outros servidores
             try:
                 
                 prepare_responses = []
-                print(prepare_responses)
-                for url in [SERVER_2_URL, SERVER_3_URL]:
-                    response = requests.post(f"{url}/prepare", json={"caminho": caminho, "cpf": cpf})
+                if(server2): # somente se usa
+                    response = requests.post(f"{SERVER_2_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
                     prepare_responses.append(response)
-
+                if(server3): # somente se usa
+                    response = requests.post(f"{SERVER_3_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    prepare_responses.append(response)
+                #for url in [SERVER_2_URL, SERVER_3_URL]:
+                    #response = requests.post(f"{url}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    #prepare_responses.append(response)
+                print(prepare_responses)
                 
                 # Verificar se todos os servidores responderam com sucesso
-                if all(resp.status_code == 200 for resp in prepare_responses): 
+                if len(prepare_responses) == 0 or all(resp.status_code == 200 for resp in prepare_responses): 
                     # Fase de commit
-                    for url in [SERVER_2_URL, SERVER_3_URL]:
-                        requests.post(f"{url}/commit", json={"caminho": caminho, "cpf": cpf}) #manda compra nos outros servidores
+                    if(server1): # somente se usa
+                        requests.post(f"{SERVER_1_URL}/commit", json={"caminho": caminho, "cpf": cpf}) #manda compra nos outros servidores
+                    if(server2): # somente se usa
+                        requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "cpf": cpf}) #manda compra nos outros servidores
+                    if(server3): # somente se usa
+                        requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "cpf": cpf}) #manda compra nos outros servidores
                     # Adicionar passagem ao cliente
+                    print(server1, server2, server3)
                     novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
                     cliente.trechos[str(novo_id)] = caminho
                     atualizar_cliente(cliente)
                     return jsonify({"msg": "Passagem comprada com sucesso"}), 200
                 else:
-                    # Se algum servidor falhar, faz rollback
-                    for url in [SERVER_2_URL, SERVER_3_URL]:
-                        requests.post(f"{url}/rollback", json={"caminho": caminho, "cpf": cpf})
+                    if(server2): # somente se usa
+                        requests.post(f"{SERVER_2_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
+                    if(server3): # somente se usa
+                        requests.post(f"{SERVER_3_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
                     return jsonify({"msg": "Compra cancelada, não foi possível concluir a transação"}), 400
 
             except requests.RequestException:
@@ -240,32 +278,57 @@ def buscar_rotas():
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400
 
     trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_2_URL, SERVER_3_URL]
+    servidores_externos = [SERVER_2_URL, SERVER_3_URL]  # URLs dos servidores externos
 
     rotas = {}
     id_rota = 1
     
-    def dfs(cidade_atual, caminho, visitados, preco_total):
+    def dfs(cidade_atual, caminho, visitados, preco_total, servidores_incluidos):
         nonlocal id_rota
         caminho.append(cidade_atual)
         visitados.add(cidade_atual)
 
+        # Se a cidade atual for o destino, salva a rota completa
         if cidade_atual == destino:
-            
-            rotas[id_rota] = {"caminho": caminho.copy(), "preco_total": preco_total}
+            rotas[id_rota] = {
+                "caminho": caminho.copy(),
+                "preco_total": preco_total,
+                "servidores_incluidos": list(servidores_incluidos)  # Lista dos servidores usados
+            }
             id_rota += 1
         else:
+            # Obtém os trechos disponíveis para a cidade atual
             trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
 
             for vizinho, info in trechos_disponiveis.items():
+                # Verifica se há vagas e se o vizinho ainda não foi visitado
                 if info["vagas"] > 0 and vizinho not in visitados:
-                    dfs(vizinho, caminho, visitados, preco_total + info.get("preco", 0))
+                    # Identifica o servidor do trecho atual
+                    server_id = info.get("server_id", "local")  # Assume "local" se for do próprio servidor
+                    if server_id != "local":
+                        servidores_incluidos.add(server_id)  # Adiciona o servidor externo ao conjunto
+                    
+                    # Chama o DFS para o próximo trecho
+                    dfs(
+                        vizinho, 
+                        caminho, 
+                        visitados, 
+                        preco_total + info.get("preco", 0), 
+                        servidores_incluidos
+                    )
 
+                    # Remove o servidor se ele foi adicionado neste trecho
+                    if server_id != "local":
+                        if server_id in servidores_incluidos:  # Verifica se o servidor está no conjunto
+                            servidores_incluidos.remove(server_id)  # Remove o servidor do conjunto
+        print(servidores_incluidos)
         caminho.pop()
         visitados.remove(cidade_atual)
 
-    dfs(origem, [], set(), 0)
+    # Inicia a busca em profundidade
+    dfs(origem, [], set(), 0, set())
     return jsonify(rotas), 200
+
 
 @app.route('/obter_trechos', methods=['GET'])
 def obter_trechos():
@@ -324,16 +387,35 @@ def commit():
     data = request.get_json()
     caminho = data.get('caminho')
     cpf = data.get('cpf')
-
+    server_url = None
     # Aqui seria a lógica para efetivamente reservar as passagens
     trechos_viagem = carregar_trechos()
     for i in range(len(caminho) - 1):
         origem = caminho[i]
         destino = caminho[i + 1]
-        if origem in trechos_viagem and destino in trechos_viagem[origem]:
-            trechos_viagem[origem][destino]["vagas"] -= 1
+        server = trechos_viagem[origem][destino]["server_id"]
+        if(server == "server1"):
+            server_url = SERVER_1_URL
+        elif(server == "server2"):
+            server_url = SERVER_2_URL
+        elif(server == "server3"):
+            server_url = SERVER_3_URL
+        if (origem in trechos_viagem and destino in trechos_viagem[origem]) :
+            #remover_uma_vaga(origem, destino, trechos_viagem[origem][destino]["server_id"])
+            try:
+                if(server_url == None):
+                    print("URL Invalido")
+                    return 400
+                response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino})
+                if response.status_code == 200:
+                    print(f"Vaga removida com sucesso.")
+                else:
+                    print(f"Erro remover vaga do trecho: {response.json().get('msg', '')}")
+            except requests.exceptions.RequestException as e:
+                print(f"Erro de conexão: {e}")
 
-    salvar_trechos(trechos_viagem)
+            #removendo pra testar trechos_viagem[origem][destino]["vagas"] -= 1
+
     return jsonify({"msg": "Compra confirmada"}), 200
 
 # Fase de rollback (para outros servidores)
@@ -351,36 +433,36 @@ def inicializar_arquivos():
     if not CAMINHO_TRECHOS.exists():
         salvar_trechos({
                 "São Paulo-SP": {
-                    "Rio de Janeiro-RJ": {"vagas": 10, "preco": 100},
-                    "Brasília-DF": {"vagas": 5, "preco": 150}
+                    "Rio de Janeiro-RJ": {"vagas": 10, "preco": 100, "server_id": "server1"},
+                    "Brasília-DF": {"vagas": 5, "preco": 150, "server_id": "server1"}
                 },
                 "Rio de Janeiro-RJ": {
-                    "Brasília-DF": {"vagas": 8, "preco": 80},
-                    "Salvador-BA": {"vagas": 2, "preco": 120}
+                    "Brasília-DF": {"vagas": 8, "preco": 80, "server_id": "server1"},
+                    "Salvador-BA": {"vagas": 2, "preco": 120, "server_id": "server1"}
                 },
                 "Brasília-DF": {
-                    "Salvador-BA": {"vagas": 4, "preco": 90}
+                    "Salvador-BA": {"vagas": 4, "preco": 90, "server_id": "server1"}
                 },
                 "Salvador-BA": {
-                    "Fortaleza-CE": {"vagas": 3, "preco": 110}
+                    "Fortaleza-CE": {"vagas": 3, "preco": 110, "server_id": "server1"}
                 },
                 "Fortaleza-CE": {
-                    "Recife-PE": {"vagas": 6, "preco": 70}
+                    "Recife-PE": {"vagas": 6, "preco": 70, "server_id": "server1"}
                 },
                 "Recife-PE": {
-                    "Porto Alegre-RS": {"vagas": 2, "preco": 130}
+                    "Porto Alegre-RS": {"vagas": 2, "preco": 130, "server_id": "server1"}
                 },
                 "Porto Alegre-RS": {
-                    "Curitiba-PR": {"vagas": 5, "preco": 95}
+                    "Curitiba-PR": {"vagas": 5, "preco": 95, "server_id": "server1"}
                 },
                 "Curitiba-PR": {
-                    "Manaus-AM": {"vagas": 1, "preco": 200}
+                    "Manaus-AM": {"vagas": 1, "preco": 200, "server_id": "server1"}
                 },
                 "Manaus-AM": {
-                    "Belo Horizonte-MG": {"vagas": 4, "preco": 160}
+                    "Belo Horizonte-MG": {"vagas": 4, "preco": 160, "server_id": "server1"}
                 },
                 "Belo Horizonte-MG": {
-                    "São Paulo-SP": {"vagas": 7, "preco": 85}
+                    "São Paulo-SP": {"vagas": 7, "preco": 85, "server_id": "server1"}
                 }
             })
     if not CAMINHO_CLIENTES.exists():

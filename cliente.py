@@ -32,7 +32,7 @@ def print_cidades():
     cidades = set()  # Usamos um set para garantir que as cidades não se repitam
 
     # Lista de URLs dos servidores
-    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    servidores = [SERVER_1_URL, SERVER_2_URL]#, #SERVER_3_URL]
 
     for servidor in servidores:
         try:
@@ -121,7 +121,8 @@ def comprar_passagem():
         print("CPF inválido. Deve conter exatamente 11 dígitos.")
         input("Pressione Enter para voltar ao menu principal...")
         return
-
+    situacao_cadastro = requests.post(f"{BASE_URL}/cadastro", json={"cpf": cpf})
+    print(f"{situacao_cadastro.json().get('msg', '')}")
     print("Escolha a origem:")
     cidades = print_cidades()
     try:
@@ -151,51 +152,60 @@ def comprar_passagem():
         "origem": cidade_origem,
         "destino": cidade_destino
     }
-
+    tentativas = 0
+    servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
     try:
-        response = requests.get(f"{BASE_URL}/buscar", params=params)
-        if response.status_code == 200:
-            rotas = response.json()
-            if not rotas:
-            
-                print("Não há rotas disponíveis para essa viagem.")
-                input("Pressione Enter para voltar ao menu principal...")
-                return
-
-            print("\nRotas disponíveis:")
-            for id_rota, detalhes in rotas.items():
-                trajeto = " -> ".join(detalhes['caminho'])
-                preco_total = detalhes['preco_total']
-                print(f"{id_rota}. {trajeto} | Preço Total: R${preco_total}")
-
-            # Escolha da rota
-            escolha_rota = input("\nEscolha a rota desejada (número) ou digite 'cancelar' para abortar: ").strip()
-            if escolha_rota.lower() == 'cancelar':
-                print("Compra cancelada.")
-                input("Pressione Enter para voltar ao menu principal...")
-                return
-
-            if not escolha_rota.isdigit() or escolha_rota not in rotas:
-                print("Opção inválida.")
-                input("Pressione Enter para voltar ao menu principal...")
-                return
-
-            rota_escolhida = rotas[escolha_rota]['caminho']
-
-            # Inicia o processo 2PC com os servidores
-            payload = {
-                "caminho": rota_escolhida,
-                "cpf": cpf  # Adiciona o CPF na payload
-            }
-
-            compra_response = requests.post(f"{BASE_URL}/comprar", json=payload)
-            if compra_response.status_code == 200:
-                print("Compra realizada com sucesso!")
+        while(tentativas < 3):
+            response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params)
+            if response.status_code == 200:
+                rotas = response.json()
+                if rotas:
+                    break
+                else:
+                    tentativas = tentativas + 1
+                    print(f"preso no loop{tentativas}")
             else:
-                print(f"Erro na compra: {compra_response.json().get('msg', '')}")
+                print(f"Erro ao buscar rotas: {response.json().get('msg', '')}")
+            print(f"preso no loop{tentativas}")
+        if not rotas:
+            print("Não há rotas disponíveis para essa viagem.")
+            input("Pressione Enter para voltar ao menu principal...")
+            return
 
+        print("\nRotas disponíveis:")
+        for id_rota, detalhes in rotas.items():
+            trajeto = " -> ".join(detalhes['caminho'])
+            preco_total = detalhes['preco_total']
+            servidores = detalhes["servidores_incluidos"]
+            print(f"{id_rota}. {trajeto} | Preço Total: R${preco_total}")
+
+        # Escolha da rota
+        escolha_rota = input("\nEscolha a rota desejada (número) ou digite 'cancelar' para abortar: ").strip()
+        if escolha_rota.lower() == 'cancelar':
+            print("Compra cancelada.")
+            input("Pressione Enter para voltar ao menu principal...")
+            return
+
+        if not escolha_rota.isdigit() or escolha_rota not in rotas:
+            print("Opção inválida.")
+            input("Pressione Enter para voltar ao menu principal...")
+            return
+
+        rota_escolhida = rotas[escolha_rota]['caminho']
+
+        # Inicia o processo 2PC com os servidores
+        payload = {
+            "caminho": rota_escolhida,
+            "cpf": cpf,  # Adiciona o CPF na payload
+            "servidores" : servidores
+        }
+
+        compra_response = requests.post(f"{servidores_urls[tentativas]}/comprar", json=payload)
+        if compra_response.status_code == 200:
+            print("Compra realizada com sucesso!")
         else:
-            print(f"Erro ao buscar rotas: {response.json().get('msg', '')}")
+            print(f"Erro na compra: {compra_response.json().get('msg', '')}")
+
 
     except requests.exceptions.RequestException as e:
         print(f"Erro de conexão: {e}")

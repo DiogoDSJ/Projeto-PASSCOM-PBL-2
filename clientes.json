@@ -15,6 +15,14 @@
                 "Brasília-DF",
                 "Salvador-BA",
                 "Fortaleza-CE"
+            ],
+            "3": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "4": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
             ]
         }
     },
@@ -28,6 +36,53 @@
             "2": [
                 "São Paulo-SP",
                 "Rio de Janeiro-RJ"
+            ]
+        }
+    },
+    {
+        "cpf": "07738083530",
+        "trechos": {
+            "1": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "2": [
+                "São Paulo-SP",
+                "Brasília-DF"
+            ],
+            "3": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "4": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "5": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "6": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "7": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "8": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "9": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ",
+                "Brasília-DF",
+                "Salvador-BA"
+            ],
+            "10": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
             ]
         }
     }
