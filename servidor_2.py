@@ -107,11 +107,47 @@ def remover_uma_vaga():
         return jsonify({"msg": "Vaga removida com sucesso"}), 200
     else:
         return jsonify({"msg": "Erro na remocao da vaga"}), 400
-
 # Funções para trechos
-def carregar_trechos():
+@app.route('/carregar_trecho_local', methods=['GET'])
+def carregar_trechos_locais():
     dados = carregar_json(CAMINHO_TRECHOS)
     return dados.get("trechos", {})
+
+# Funções para trechos
+def carregar_trechos(servidores_externos=None):
+    # Carregar trechos do servidor local
+    dados = carregar_json(CAMINHO_TRECHOS)
+    print(f"get{dados.get("trechos", {})}")
+    trechos_locais = dados.get("trechos", {})
+    # Inicializa o dicionário para armazenar os trechos combinados
+    trechos_combinados = trechos_locais.copy()
+    url_servidores = []
+    # Se não for fornecida uma lista de servidores, use os padrões
+    if servidores_externos is None:
+        servidores_externos = [SERVER_2_URL, SERVER_3_URL]
+    if("server2") in servidores_externos:
+        servidores_externos.remove("server2")
+    if("server1") in servidores_externos:
+        url_servidores.append(SERVER_1_URL)
+    if("server3") in servidores_externos:
+        url_servidores.append(SERVER_3_URL)
+    # Obter trechos de cada servidor externo
+    for url in url_servidores:
+        try:
+            response = requests.get(f"{url}/carregar_trecho_local")
+            if response.status_code == 200:
+                trechos_externos = response.json()
+                # Mesclar os trechos externos no dicionário combinado
+                for origem, destinos in trechos_externos.items():
+                    if origem not in trechos_combinados:
+                        trechos_combinados[origem] = destinos
+                    else:
+                        trechos_combinados[origem].update(destinos)  # Atualiza com novos destinos
+        except requests.RequestException:
+            continue  # Se não conseguir obter os dados, apenas continue
+    print(f"trechos return   {trechos_combinados}")
+    return trechos_combinados
+
 
 def salvar_trechos(trechos):
     dados = {"trechos": trechos}
@@ -186,7 +222,10 @@ def preparar_compra():
         return jsonify({"msg": "CPF inválido. Deve conter exatamente 11 dígitos."}), 400
     print(f"servidores2{servidores}")
     with lock:
-        trechos_viagem = carregar_trechos()
+        if servidores:
+            trechos_viagem = carregar_trechos(servidores)  # Passa a lista de servidores
+        else:
+            trechos_viagem = carregar_trechos()  # Carrega apenas trechos locais
         cliente = encontrar_cliente(cpf)
         server1 = False
         server2 = False
@@ -283,34 +322,46 @@ def buscar_rotas():
         caminho.append(cidade_atual)
         visitados.add(cidade_atual)
 
+        # Se a cidade atual for o destino, salva a rota completa
         if cidade_atual == destino:
-            # Quando alcança o destino, armazena a rota
             rotas[id_rota] = {
                 "caminho": caminho.copy(),
                 "preco_total": preco_total,
-                "servidores_incluidos": list(servidores_incluidos)
+                "servidores_incluidos": list(servidores_incluidos)  # Lista dos servidores usados
             }
             id_rota += 1
         else:
+            # Obtém os trechos disponíveis para a cidade atual
             trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
 
             for vizinho, info in trechos_disponiveis.items():
+                # Verifica se há vagas e se o vizinho ainda não foi visitado
                 if info["vagas"] > 0 and vizinho not in visitados:
-                    server_id = info.get("server_id", "local")
-                    
-                    # Executa a DFS sem modificar `servidores_incluidos` ainda
+                    # Identifica o servidor do trecho atual
+                    server_id = info.get("server_id", "local")  # Assume "local" se for do próprio servidor
                     if server_id != "local":
-                        dfs(vizinho, caminho, visitados, preco_total + info.get("preco", 0), servidores_incluidos | {server_id})
-                    else:
-                        dfs(vizinho, caminho, visitados, preco_total + info.get("preco", 0), servidores_incluidos)
+                        servidores_incluidos.add(server_id)  # Adiciona o servidor externo ao conjunto
+                    
+                    # Chama o DFS para o próximo trecho
+                    dfs(
+                        vizinho, 
+                        caminho, 
+                        visitados, 
+                        preco_total + info.get("preco", 0), 
+                        servidores_incluidos
+                    )
 
+                    # Remove o servidor se ele foi adicionado neste trecho
+                    if server_id != "local":
+                        if server_id in servidores_incluidos:  # Verifica se o servidor está no conjunto
+                            servidores_incluidos.remove(server_id)  # Remove o servidor do conjunto
+        print(servidores_incluidos)
         caminho.pop()
         visitados.remove(cidade_atual)
 
-    # Chama a DFS inicial
+    # Inicia a busca em profundidade
     dfs(origem, [], set(), 0, set())
     return jsonify(rotas), 200
-
 
 @app.route('/obter_trechos', methods=['GET'])
 def obter_trechos():

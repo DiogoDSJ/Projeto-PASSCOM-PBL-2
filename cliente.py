@@ -177,7 +177,7 @@ def comprar_passagem():
             trajeto = " -> ".join(detalhes['caminho'])
             preco_total = detalhes['preco_total']
             print(f"{id_rota}. {trajeto} | Preço Total: R${preco_total}")
-
+        print(rotas)
         # Escolha da rota
         escolha_rota = input("\nEscolha a rota desejada (número) ou digite 'cancelar' para abortar: ").strip()
         if escolha_rota.lower() == 'cancelar':

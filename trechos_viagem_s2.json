@@ -14,12 +14,12 @@
         },
         "Vitória-ES": {
             "Rio de Janeiro-RJ": {
-                "vagas": 8,
+                "vagas": 7,
                 "preco": 70,
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 4,
+                "vagas": 0,
                 "preco": 160,
                 "server_id": "server2"
             }

@@ -108,11 +108,48 @@ def remover_uma_vaga():
         return jsonify({"msg": "Vaga removida com sucesso"}), 200
     else:
         return jsonify({"msg": "Erro na remocao da vaga"}), 400
-
 # Funções para trechos
-def carregar_trechos():
+@app.route('/carregar_trecho_local', methods=['GET'])
+def carregar_trechos_locais():
     dados = carregar_json(CAMINHO_TRECHOS)
     return dados.get("trechos", {})
+
+# Funções para trechos
+def carregar_trechos(servidores_externos=None):
+    # Carregar trechos do servidor local
+    dados = carregar_json(CAMINHO_TRECHOS)
+    print(f"get{dados.get("trechos", {})}")
+    trechos_locais = dados.get("trechos", {})
+    # Inicializa o dicionário para armazenar os trechos combinados
+    trechos_combinados = trechos_locais.copy()
+    url_servidores = []
+    # Se não for fornecida uma lista de servidores, use os padrões
+    if servidores_externos is None:
+        servidores_externos = [SERVER_2_URL, SERVER_3_URL]
+    if("server1") in servidores_externos:
+        servidores_externos.remove("server1")
+    if("server2") in servidores_externos:
+        url_servidores.append(SERVER_2_URL)
+    if("server3") in servidores_externos:
+        url_servidores.append(SERVER_3_URL)
+    # Obter trechos de cada servidor externo
+    for url in url_servidores:
+        try:
+            response = requests.get(f"{url}/carregar_trecho_local")
+            if response.status_code == 200:
+                trechos_externos = response.json()
+                print(f"trechos externos{trechos_externos}")
+                # Mesclar os trechos externos no dicionário combinado
+                for origem, destinos in trechos_externos.items():
+                    if origem not in trechos_combinados:
+                        trechos_combinados[origem] = destinos
+                    else:
+                        trechos_combinados[origem].update(destinos)  # Atualiza com novos destinos
+        except requests.RequestException:
+            continue  # Se não conseguir obter os dados, apenas continue
+    print(f"trechos return   {trechos_combinados}")
+    return trechos_combinados
+
 
 def salvar_trechos(trechos):
     dados = {"trechos": trechos}
@@ -186,7 +223,10 @@ def preparar_compra():
         return jsonify({"msg": "CPF inválido. Deve conter exatamente 11 dígitos."}), 400
     print(f"servidores1{servidores}")
     with lock:
-        trechos_viagem = carregar_trechos()
+        if servidores:
+            trechos_viagem = carregar_trechos(servidores)  # Passa a lista de servidores
+        else:
+            trechos_viagem = carregar_trechos()  # Carrega apenas trechos locais
         cliente = encontrar_cliente(cpf)
         server1 = False
         server2 = False
@@ -222,9 +262,6 @@ def preparar_compra():
                 if(server3): # somente se usa
                     response = requests.post(f"{SERVER_3_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
                     prepare_responses.append(response)
-                #for url in [SERVER_2_URL, SERVER_3_URL]:
-                    #response = requests.post(f"{url}/prepare", json={"caminho": caminho, "cpf": cpf})
-                    #prepare_responses.append(response)
                 print(prepare_responses)
                 
                 # Verificar se todos os servidores responderam com sucesso
@@ -279,7 +316,7 @@ def buscar_rotas():
 
     trechos_viagem = carregar_trechos()
     servidores_externos = [SERVER_2_URL, SERVER_3_URL]  # URLs dos servidores externos
-
+    
     rotas = {}
     id_rota = 1
     
