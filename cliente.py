@@ -176,7 +176,6 @@ def comprar_passagem():
         for id_rota, detalhes in rotas.items():
             trajeto = " -> ".join(detalhes['caminho'])
             preco_total = detalhes['preco_total']
-            servidores = detalhes["servidores_incluidos"]
             print(f"{id_rota}. {trajeto} | Preço Total: R${preco_total}")
 
         # Escolha da rota
@@ -192,7 +191,7 @@ def comprar_passagem():
             return
 
         rota_escolhida = rotas[escolha_rota]['caminho']
-
+        servidores = rotas[escolha_rota]["servidores_incluidos"]
         # Inicia o processo 2PC com os servidores
         payload = {
             "caminho": rota_escolhida,
