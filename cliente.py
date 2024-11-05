@@ -121,7 +121,7 @@ def comprar_passagem():
         print("CPF inválido. Deve conter exatamente 11 dígitos.")
         input("Pressione Enter para voltar ao menu principal...")
         return
-    situacao_cadastro = requests.post(f"{BASE_URL}/cadastro", json={"cpf": cpf})
+    situacao_cadastro = requests.post(f"{SERVER_2_URL}/cadastro", json={"cpf": cpf})
     print(f"{situacao_cadastro.json().get('msg', '')}")
     print("Escolha a origem:")
     cidades = print_cidades()
@@ -155,10 +155,11 @@ def comprar_passagem():
     tentativas = 0
     servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
     try:
-        while(tentativas < 3):
-            response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params)
+        while(True):
+            response = requests.get(f"{servidores_urls[1]}/buscar", params=params)
             if response.status_code == 200:
                 rotas = response.json()
+                break
                 if rotas:
                     break
                 else:
