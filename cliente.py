@@ -152,25 +152,15 @@ def comprar_passagem():
         "origem": cidade_origem,
         "destino": cidade_destino
     }
-    tentativas = 0
-    servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
-    rotas = None
     try:
-        while tentativas < len(servidores_urls):
-            try:
-                response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params, timeout=10)
-                if response.status_code == 200:
-                    rotas = response.json()
-                    if rotas:
-                        print(f"Rotas encontradas no servidor {servidores_urls[tentativas]}")
-                        break  # Sai do loop se rotas forem encontradas
-                else:
-                    print(f"Erro ao buscar rotas no servidor {servidores_urls[tentativas]}: {response.json().get('msg', '')}")
-            except requests.exceptions.RequestException as e:
-                print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}: {e}")
-            
-            tentativas += 1
-            print(f"Tentativa {tentativas} de {len(servidores_urls)}")
+        response = requests.get(f"{BASE_URL}/buscar", params=params)
+        if response.status_code == 200:
+            rotas = response.json()
+            if not rotas:
+                print("Não há rotas disponíveis para essa viagem.")
+                input("Pressione Enter para voltar ao menu principal...")
+                return
+
 
         if rotas is None:
             print("Não há rotas disponíveis para essa viagem.")
@@ -203,8 +193,7 @@ def comprar_passagem():
             "cpf": cpf,  # Adiciona o CPF na payload
             "servidores" : servidores
         }
-
-        compra_response = requests.post(f"{servidores_urls[tentativas]}/comprar", json=payload)
+        compra_response = requests.post(f"{BASE_URL}/comprar", json=payload)
         if compra_response.status_code == 200:
             print("Compra realizada com sucesso!")
         else:
