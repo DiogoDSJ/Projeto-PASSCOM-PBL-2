@@ -32,7 +32,7 @@ def print_cidades():
     cidades = set()  # Usamos um set para garantir que as cidades não se repitam
 
     # Lista de URLs dos servidores
-    servidores = [SERVER_1_URL, SERVER_2_URL]#, #SERVER_3_URL]
+    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
 
     for servidor in servidores:
         try:
@@ -154,21 +154,25 @@ def comprar_passagem():
     }
     tentativas = 0
     servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    rotas = None
     try:
-        while(True):
-            response = requests.get(f"{servidores_urls[1]}/buscar", params=params)
-            if response.status_code == 200:
-                rotas = response.json()
-                break
-                if rotas:
-                    break
+        while tentativas < len(servidores_urls):
+            try:
+                response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params, timeout=10)
+                if response.status_code == 200:
+                    rotas = response.json()
+                    if rotas:
+                        print(f"Rotas encontradas no servidor {servidores_urls[tentativas]}")
+                        break  # Sai do loop se rotas forem encontradas
                 else:
-                    tentativas = tentativas + 1
-                    print(f"preso no loop{tentativas}")
-            else:
-                print(f"Erro ao buscar rotas: {response.json().get('msg', '')}")
-            print(f"preso no loop{tentativas}")
-        if not rotas:
+                    print(f"Erro ao buscar rotas no servidor {servidores_urls[tentativas]}: {response.json().get('msg', '')}")
+            except requests.exceptions.RequestException as e:
+                print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}: {e}")
+            
+            tentativas += 1
+            print(f"Tentativa {tentativas} de {len(servidores_urls)}")
+
+        if rotas is None:
             print("Não há rotas disponíveis para essa viagem.")
             input("Pressione Enter para voltar ao menu principal...")
             return

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import threading
 import requests
-
+import time
 app = Flask(__name__)
 
 # Caminhos dos arquivos JSON
@@ -124,7 +124,7 @@ def carregar_trechos(servidores_externos=None):
     url_servidores = []
     # Se não for fornecida uma lista de servidores, use os padrões
     if servidores_externos is None:
-        servidores_externos = [SERVER_2_URL, SERVER_3_URL]
+        servidores_externos = [SERVER_1_URL, SERVER_3_URL]
     if("server1") in servidores_externos:
         url_servidores.append(SERVER_1_URL)
     if("server3") in servidores_externos:
@@ -175,10 +175,6 @@ def obter_cidades_endpoint():
     except Exception as e:
         return jsonify({"msg": "Erro ao obter cidades", "erro": str(e)}), 500
 
-@app.route('/listar_trechos', methods=['GET'])
-def listar_trechos_s1():
-    response = request.get(f"{SERVER_1_URL}/trechos")
-    return jsonify(response.json()), response.status_code
 
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
@@ -311,21 +307,29 @@ def ver_passagens():
 def buscar_rotas():
     origem = request.args.get('origem')
     destino = request.args.get('destino')
+    tempo_limite = 10  # tempo limite total em segundos
 
     if not origem or not destino:
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400
 
     trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_2_URL, SERVER_3_URL]  # URLs dos servidores externos
+    servidores_externos = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
 
     rotas = {}
     id_rota = 1
-    
+    inicio = time.time()  # Marca o tempo de início
+
+        
+
+
     def dfs(cidade_atual, caminho, visitados, preco_total, servidores_incluidos):
         nonlocal id_rota
         caminho.append(cidade_atual)
         visitados.add(cidade_atual)
-        print(f"Visitando: {cidade_atual}, Caminho atual: {caminho}, Visitados: {visitados}")
+        # Verifica se o tempo limite foi atingido antes de continuar
+        if time.time() - inicio > tempo_limite:
+            print("Timeout atingido durante a busca.")
+            return
 
         # Se a cidade atual for o destino, salva a rota completa
         if cidade_atual == destino:
@@ -338,6 +342,11 @@ def buscar_rotas():
         else:
             # Obtém os trechos disponíveis para a cidade atual
             trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
+
+            # Se não houver mais destinos disponíveis, cancela a busca
+            if not trechos_disponiveis:
+                print(f"Sem mais destinos disponíveis a partir de {cidade_atual}. Cancelando a busca.")
+                return
 
             for vizinho, info in trechos_disponiveis.items():
                 # Verifica se há vagas e se o vizinho ainda não foi visitado
@@ -390,7 +399,7 @@ def obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos):
     if not trechos_disponiveis:
         for url in servidores_externos:
             try:
-                response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual})
+                response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual}, timeout = 10)
                 if response.status_code == 200:
                     trechos_disponiveis = response.json()
                     if trechos_disponiveis:
@@ -470,39 +479,52 @@ def rollback():
 def inicializar_arquivos():
     if not CAMINHO_TRECHOS.exists():
         salvar_trechos({
-                "São Paulo-SP": {
-                    "Rio de Janeiro-RJ": {"vagas": 10, "preco": 100, "server_id": "server2"},
-                    "Brasília-DF": {"vagas": 5, "preco": 150, "server_id": "server2"}
-                },
-                "Rio de Janeiro-RJ": {
-                    "Brasília-DF": {"vagas": 8, "preco": 80, "server_id": "server2"},
-                    "Salvador-BA": {"vagas": 2, "preco": 120, "server_id": "server2"}
-                },
-                "Brasília-DF": {
-                    "Salvador-BA": {"vagas": 4, "preco": 90, "server_id": "server2"}
-                },
-                "Salvador-BA": {
-                    "Fortaleza-CE": {"vagas": 3, "preco": 110, "server_id": "server2"}
-                },
-                "Fortaleza-CE": {
-                    "Recife-PE": {"vagas": 6, "preco": 70, "server_id": "server2"}
-                },
-                "Recife-PE": {
-                    "Porto Alegre-RS": {"vagas": 2, "preco": 130, "server_id": "server2"}
-                },
-                "Porto Alegre-RS": {
-                    "Curitiba-PR": {"vagas": 5, "preco": 95, "server_id": "server2"}
-                },
-                "Curitiba-PR": {
-                    "Manaus-AM": {"vagas": 1, "preco": 200, "server_id": "server2"}
-                },
-                "Manaus-AM": {
-                    "Belo Horizonte-MG": {"vagas": 4, "preco": 160, "server_id": "server2"}
-                },
-                "Belo Horizonte-MG": {
-                    "São Paulo-SP": {"vagas": 7, "preco": 85, "server_id": "server2"}
-                }
-            })
+            "Belo Horizonte-MG": {
+                "Vitória-ES": {"vagas": 10, "preco": 95, "server_id": "server2"},
+                "São Paulo-SP": {"vagas": 7, "preco": 130, "server_id": "server2"}
+            },
+            "Vitória-ES": {
+                "Rio de Janeiro-RJ": {"vagas": 2, "preco": 70, "server_id": "server2"},
+                "Salvador-BA": {"vagas": 5, "preco": 160, "server_id": "server2"},
+                "Belo Horizonte-MG": {"vagas": 8, "preco": 100, "server_id": "server2"}
+            },
+            "São Paulo-SP": {
+                "Curitiba-PR": {"vagas": 12, "preco": 100, "server_id": "server2"},
+                "Porto Alegre-RS": {"vagas": 3, "preco": 180, "server_id": "server2"},
+                "Belo Horizonte-MG": {"vagas": 6, "preco": 120, "server_id": "server2"}
+            },
+            "Curitiba-PR": {
+                "Florianópolis-SC": {"vagas": 6, "preco": 80, "server_id": "server2"},
+                "São Paulo-SP": {"vagas": 5, "preco": 110, "server_id": "server2"}
+            },
+            "Porto Alegre-RS": {
+                "Canoas-RS": {"vagas": 4, "preco": 30, "server_id": "server2"},
+                "São Paulo-SP": {"vagas": 2, "preco": 150, "server_id": "server2"}
+            },
+            "Salvador-BA": {
+                "Aracaju-SE": {"vagas": 2, "preco": 90, "server_id": "server2"},
+                "Vitória-ES": {"vagas": 3, "preco": 100, "server_id": "server2"}
+            },
+            "Aracaju-SE": {
+                "Maceió-AL": {"vagas": 4, "preco": 65, "server_id": "server2"},
+                "Salvador-BA": {"vagas": 3, "preco": 80, "server_id": "server2"}
+            },
+            "Maceió-AL": {
+                "Recife-PE": {"vagas": 7, "preco": 55, "server_id": "server2"},
+                "Aracaju-SE": {"vagas": 5, "preco": 70, "server_id": "server2"}
+            },
+            "Recife-PE": {
+                "João Pessoa-PB": {"vagas": 6, "preco": 45, "server_id": "server2"},
+                "Maceió-AL": {"vagas": 4, "preco": 60, "server_id": "server2"}
+            },
+            "João Pessoa-PB": {
+                "Recife-PE": {"vagas": 5, "preco": 40, "server_id": "server2"}
+            },
+            "Florianópolis-SC": {
+                "Curitiba-PR": {"vagas": 5, "preco": 50, "server_id": "server2"}
+            }
+        })
+
     if not CAMINHO_CLIENTES.exists():
         salvar_clientes([])
 
