@@ -11,9 +11,9 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s3.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
-SERVER_1_URL = "http://servidor1:3000"
-SERVER_2_URL = "http://servidor2:4000"
-SERVER_3_URL = "http://servidor3:6000"
+SERVER_1_URL = "http://192.168.31.53:3000"
+SERVER_2_URL = "http://192.168.31.53:4000"
+SERVER_3_URL = "http://192.168.31.53:6000"
 
 
 # Lock para sincronização de acesso aos arquivos
@@ -316,6 +316,7 @@ def buscar_rotas():
     
     def dfs(cidade_atual, caminho, visitados, preco_total, servidores_incluidos):
         nonlocal id_rota
+        print(f"Entrando em DFS para cidade: {cidade_atual}, caminho atual: {caminho}, preço acumulado: {preco_total}, servidores incluídos: {servidores_incluidos}")
         caminho.append(cidade_atual)
         visitados.add(cidade_atual)
 
@@ -326,11 +327,13 @@ def buscar_rotas():
                 "preco_total": preco_total,
                 "servidores_incluidos": list(servidores_incluidos)  # Lista dos servidores usados
             }
+            print(f"Rota encontrada (ID {id_rota}): {rotas[id_rota]}")
+
             id_rota += 1
         else:
             # Obtém os trechos disponíveis para a cidade atual
             trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
-
+            print(f"Trechos disponíveis a partir de {cidade_atual}: {trechos_disponiveis}")
             for vizinho, info in trechos_disponiveis.items():
                 # Verifica se há vagas e se o vizinho ainda não foi visitado
                 if info["vagas"] > 0 and vizinho not in visitados:
@@ -338,7 +341,7 @@ def buscar_rotas():
                     server_id = info.get("server_id", "local")  # Assume "local" se for do próprio servidor
                     if server_id != "local":
                         servidores_incluidos.add(server_id)  # Adiciona o servidor externo ao conjunto
-                    
+                    print(f"Explorando vizinho {vizinho} de {cidade_atual}, preço do trecho: {info.get('preco', 0)}, servidores: {servidores_incluidos}")
                     # Chama o DFS para o próximo trecho
                     dfs(
                         vizinho, 
@@ -355,7 +358,7 @@ def buscar_rotas():
         print(servidores_incluidos)
         caminho.pop()
         visitados.remove(cidade_atual)
-
+        print(f"Retornando de DFS para cidade: {cidade_atual}, caminho após remoção: {caminho}, servidores incluídos: {servidores_incluidos}")
     # Inicia a busca em profundidade
     dfs(origem, [], set(), 0, set())
     return jsonify(rotas), 200
@@ -368,29 +371,35 @@ def obter_trechos():
         return jsonify({"msg": "Cidade não informada"}), 400
 
     trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_2_URL, SERVER_3_URL]
+    servidores_externos = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
 
     trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
     return jsonify(trechos_disponiveis), 200
 
 def obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos):
-    # Tenta obter trechos locais primeiro
-    trechos_disponiveis = trechos_viagem.get(cidade_atual, {})
+    # Obtém os trechos locais, se houver
+    trechos_disponiveis = trechos_viagem.get(cidade_atual, {}).copy()  # Faz uma cópia dos trechos locais
 
-    # Se não houver trechos locais, tenta buscar em servidores externos
-    if not trechos_disponiveis:
-        for url in servidores_externos:
-            try:
-                response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual}, timeout=10)
-                if response.status_code == 200:
-                    trechos_disponiveis = response.json()
-                    if trechos_disponiveis:
-                        break
-            except requests.RequestException:
-                continue
+    # Tenta obter trechos dos servidores externos também, mas evita repetição
+    for url in servidores_externos:
+        try:
+            # Verifica se a cidade já foi consultada nesse servidor
+            if cidade_atual in trechos_disponiveis:
+                continue  # Não faz a requisição se já houver trechos para essa cidade
             
+            response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual}, timeout=10)
+            if response.status_code == 200:
+                trechos_externos = response.json()
+                
+                # Adiciona ou substitui os trechos externos nos trechos disponíveis
+                for cidade, info in trechos_externos.items():
+                    trechos_disponiveis[cidade] = info
+        except requests.RequestException:
+            continue
 
     return trechos_disponiveis
+
+
 
 
 

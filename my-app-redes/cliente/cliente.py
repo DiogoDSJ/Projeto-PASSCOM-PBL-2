@@ -4,12 +4,12 @@ import sys
 import json
 
 # Configurações do servidor
-SERVER_HOST = 'servidor1'  # Altere para o IP do servidor se necessário
+SERVER_HOST = '192.168.31.53'  # Altere para o IP do servidor se necessário
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
-SERVER_1_URL = "http://servidor1:3000"
-SERVER_2_URL = "http://servidor2:4000"
-SERVER_3_URL = "http://servidor3:6000"
+SERVER_1_URL = "http://192.168.31.53:3000"
+SERVER_2_URL = "http://192.168.31.53:4000"
+SERVER_3_URL = "http://192.168.31.53:6000"
 
 def limpar_tela():
     """Limpa a tela do terminal para uma visualização mais limpa."""
@@ -117,7 +117,7 @@ def comprar_passagem():
     print("       COMPRAR PASSAGEM")
     print("="*30)
 
-    cpf = input("Insira seu CPF (11 dígitos): ").strip()
+    cpf = "07738083530"#input("Insira seu CPF (11 dígitos): ").strip()
     if not cpf.isdigit() or len(cpf) != 11:
         print("CPF inválido. Deve conter exatamente 11 dígitos.")
         input("Pressione Enter para voltar ao menu principal...")
