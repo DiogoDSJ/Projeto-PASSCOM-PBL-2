@@ -13,9 +13,17 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
-SERVER_1_URL = "http://servidor1:3000"
+
+''' conectar entre conteiners localmente
+SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
+'''
+
+#conectando localmente
+SERVER_1_URL = "http://localhost:3000" 
+SERVER_2_URL = "http://localhost:4000"
+SERVER_3_URL = "http://localhost:6000"
 
 
 # Classe Cliente
@@ -228,6 +236,11 @@ def preparar_compra():
         else:
             trechos_viagem = carregar_trechos()  # Carrega apenas trechos locais
         cliente = encontrar_cliente(cpf)
+
+
+        if cliente is None:  # Verificar se o cliente foi encontrado
+            return jsonify({"msg": "Cliente não encontrado"}), 404
+            
         server1 = False
         server2 = False
         server3 = False

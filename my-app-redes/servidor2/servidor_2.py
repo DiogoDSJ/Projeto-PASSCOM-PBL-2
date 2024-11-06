@@ -10,9 +10,18 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s2.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
-SERVER_1_URL = "http://servidor1:3000"
+
+''' conectar entre conteiners localmente
+SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
+'''
+
+#conectando localmente
+SERVER_1_URL = "http://localhost:3000" 
+SERVER_2_URL = "http://localhost:4000"
+SERVER_3_URL = "http://localhost:6000"
+
 
 
 # Lock para sincronização de acesso aos arquivos

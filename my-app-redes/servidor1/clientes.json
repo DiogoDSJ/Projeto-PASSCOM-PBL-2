@@ -1,0 +1,58 @@
+[
+    {
+        "cpf": "11111111111",
+        "trechos": {
+            "1": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "2": [
+                "Curitiba-PR",
+                "Porto Alegre-RS"
+            ],
+            "3": [
+                "Belém-PA",
+                "São Luís-MA",
+                "Natal-RN",
+                "Fortaleza-CE",
+                "Salvador-BA",
+                "Rio de Janeiro-RJ",
+                "Brasília-DF"
+            ],
+            "4": [
+                "Rio de Janeiro-RJ",
+                "Brasília-DF",
+                "São Paulo-SP"
+            ],
+            "5": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ],
+            "6": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ],
+            "7": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ],
+            "8": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ],
+            "9": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ]
+        }
+    },
+    {
+        "cpf": "12345678901",
+        "trechos": {
+            "1": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ]
+        }
+    }
+]
