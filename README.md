@@ -93,9 +93,9 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
   
   <p>No sistema, para os servidores individuais, a busca em profundidade (DFS) é usada para explorar todas as rotas possíveis entre uma origem e um destino ao calcular passagens. Esse método funciona percorrendo recursivamente o grafo dos trechos, onde cada cidade representa um nó e cada trecho entre cidades representa uma aresta com uma quantidade limitada de vagas e um custo associado. A DFS inicia na cidade de origem e percorre os trechos disponíveis, acumulando o custo total do caminho e parando ao atingir a cidade de destino. A busca também verifica a disponibilidade de vagas em cada trecho para garantir que a rota seja válida para compra. </p>
 
-<p>Quando um cliente decide comprar uma passagem de um trecho específico, o sistema é projetado para agregar todas as possibilidades de rotas disponíveis, considerando a origem e o destino informados. Inicialmente, a consulta pode ser realizada na companhia A, que verifica a disponibilidade do trecho desejado. Caso o trecho não esteja disponível, o sistema amplia a busca, consultando as companhias B e C por meio de requisições HTTP a seus respectivos endpoints de listagem de trechos.</p>
+<p>Quando um cliente decide comprar uma passagem de um trecho específico, o sistema é projetado para agregar todas as possibilidades de rotas disponíveis, considerando a origem e o destino informados. Inicialmente, a consulta pode ser realizada na companhia A, que verifica a disponibilidade do trecho desejado. Caso o trecho não esteja disponível somente na companhia A, o sistema amplia a busca, consultando as companhias B e C por meio de requisições HTTP a seus respectivos endpoints de listagem de trechos.</p>
 
-<p>Essa integração entre as companhias é essencial para enriquecer o catálogo de trechos de viagem disponíveis para compra. Ao coletar informações de diferentes fontes, o app do cliente, ao fazer a solicitação para um servidor, atua como um hub de dados, compilando rotas de várias companhias e apresentando ao cliente todas as opções disponíveis.</p>
+<p>Essa integração entre as companhias é essencial para enriquecer o catálogo de trechos de viagem disponíveis para compra. Ao coletar informações de diferentes fontes, o servidor coordenador da compra monta as rotas novamente com a dfs no novo grafo, com os novos trechos adicionados e retorna para o cliente as possibilidades. </p>
 
 </div>
 
@@ -105,26 +105,24 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
 
   <p>O sistema consiste em um aplicativo cliente e três servidores (A, B e C), que compartilham informações sobre os trechos de viagem disponíveis. O servidor A atua como coordenador das transações, enquanto os servidores B e C são responsáveis por partes específicas dos dados (considerando que, se o cliente acessar o servidor B, ou C, ele se torna o servidor coordenador da operação). Quando um cliente solicita a compra de uma passagem, ele se conecta ao servidor A, que primeiro verifica a disponibilidade de trechos localmente. Se o trecho solicitado não estiver disponível, o servidor A consulta os servidores B e C. Essa abordagem permite uma gestão eficaz das requisições de compra e assegura a consistência entre os servidores.</p>
 
-  <p>Para coordenar a execução das transações de compra, o protocolo 2PC é complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Essa trava permanece ativa durante as fases de Preparação e Commit do 2PC. Somente após a conclusão da transação, seja pelo commit ou pelo abort, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados. Os servidores respondem “sim” ao coordenador apenas se:
+  <p>Para coordenar a execução das transações de compra, o protocolo 2PC é complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Essa trava permanece ativa durante as fases de Preparação e Commit do 2PC. Somente após a conclusão da transação, seja pelo commit ou pelo abort, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados.
 </p>
-
-<p>1 - Houver disponibilidade das vagas.</p>
-<p>2 - Nenhuma outra operação estiver utilizando os arquivos.</p>
 
 <p>Caso o servidor A não consiga atender à solicitação diretamente, ele inicia uma transação distribuída, consultando os servidores B e C. A compra é efetivada apenas se todos os servidores confirmarem a disponibilidade do trecho. O uso de locks em conjunto com o protocolo 2PC proporciona segurança contra inconsistências e assegura que as operações sejam realizadas de forma atômica, mesmo em cenários com múltiplas consultas simultâneas.
 </p>
 
 <h4>Detalhamento do Caso de Uso:</h4>
 
-<p><strong>1 - Fase de Preparação:</strong> Quando o coordenador inicia a transação, ele solicita que cada servidor trave o acesso ao arquivo de dados que contém os trechos de viagem. Esse lock impede que outros processos ou transações paralelas acessem ou modifiquem o arquivo até que a transação atual seja concluída. Cada servidor verifica sua capacidade de atender à solicitação e responde ao coordenador com "Sim" (se houver disponibilidade e o trecho puder ser reservado) ou "Não" (se não houver disponibilidade). A manutenção do lock nesta fase é crucial para evitar que alterações no número de assentos ocorram simultaneamente, prevenindo conflitos entre transações.
+<p><strong>1 - Fase de Preparação:</strong> Quando o coordenador inicia a transação, ele solicita que cada servidor trave o acesso ao arquivo de dados que contém os trechos de viagem. Esse lock impede que outros processos ou transações paralelas acessem ou modifiquem o arquivo até que a transação atual seja concluída. Cada servidor verifica sua capacidade de atender à solicitação e responde ao coordenador com "prepare" (se houver disponibilidade e o trecho puder ser reservado) ou "not-prepare" (se não houver disponibilidade). A manutenção do lock nesta fase é crucial para evitar que alterações no número de assentos ocorram simultaneamente, prevenindo conflitos entre transações.
 </p>
 
-<p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "Sim", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "Não" na fase de preparação, a transação entra na fase de Abort, onde os servidores revertam quaisquer alterações temporárias feitas e mantêm os dados em seu estado original. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
+<p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "prepare", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "not-prepare" na fase de preparação, a transação entra na fase de Abort, onde a compra é cancelada. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
 </p>
 
 <div id = "confiabilidade">
 
-  <h2>Confiabilidade da solução</h2>
+
+  
 
 </div>
 
@@ -165,6 +163,12 @@ Navegue até a pasta onde o arquivo docker-compose.yml está e execute o seguint
 
   <p>
   Em conclusão, o sistema de compra de passagens desenvolvido neste projeto demonstra uma abordagem eficiente e robusta para gerenciar reservas de trechos de diferentes companhias aéreas, utilizando um aplicativo cliente e três servidores independentes que podem se interconectar. A implementação do protocolo Two-Phase Commit (2PC), juntamente com mecanismos de bloqueio (locks), assegura a integridade e a consistência dos dados durante operações simultâneas, prevenindo conflitos e garantindo que todas as transações sejam atômicas. A comunicação via HTTP permite uma interação fluida e escalável entre os clientes e servidores, facilitando a realização de consultas e reservas. O uso do Flask para o desenvolvimento dos endpoints REST proporciona uma interface intuitiva e de fácil acesso. Além disso, a adoção do Docker oferece um ambiente controlado e escalável, facilitando a implantação e gestão do sistema em diferentes contextos operacionais. No geral, as soluções implementadas garantem uma experiência segura e confiável para os usuários, permitindo-lhes realizar compras de passagens de maneira ágil e eficiente.</p>
+</div>
+
+<div id = "referencias">
+ <h2>Referências</h2>
+
+  <p>FOWLER, Martin. Patterns of Distributed Systems: Two-Phase Commit. Martinfowler.com, 23 novembro 2023. Disponível em: https://martinfowler.com/articles/patterns-of-distributed-systems/two-phase-commit.html. Acesso em: 6 nov. 2024.</p>
 </div>
 
   
