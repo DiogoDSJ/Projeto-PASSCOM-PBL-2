@@ -4,12 +4,12 @@ import sys
 import json
 
 # Configurações do servidor
-SERVER_HOST = 'localhost'  # Altere para o IP do servidor se necessário
+SERVER_HOST = 'servidor1'  # Altere para o IP do servidor se necessário
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
-SERVER_1_URL = "http://localhost:3000"
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:5000"
+SERVER_1_URL = "http://servidor1:3000"
+SERVER_2_URL = "http://servidor2:4000"
+SERVER_3_URL = "http://servidor3:6000"
 
 def limpar_tela():
     """Limpa a tela do terminal para uma visualização mais limpa."""

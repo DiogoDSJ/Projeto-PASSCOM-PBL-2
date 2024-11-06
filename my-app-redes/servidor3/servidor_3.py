@@ -11,9 +11,10 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s3.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
-SERVER_1_URL = "http://localhost:3000"
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:5000"
+SERVER_1_URL = "http://servidor1:3000"
+SERVER_2_URL = "http://servidor2:4000"
+SERVER_3_URL = "http://servidor3:6000"
+
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
@@ -509,4 +510,4 @@ inicializar_arquivos()
 
 if __name__ == '__main__':
     inicializar_arquivos()  # Inicializa os arquivos ao iniciar o servidor
-    app.run(port=5000, debug=True)
+    app.run(port=6000, debug=True,host = '0.0.0.0')

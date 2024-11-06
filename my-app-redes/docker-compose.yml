@@ -5,9 +5,9 @@ services:
     build:
       context: ./servidor1  # Caminho para o diretório onde está o Dockerfile do servidor
       dockerfile: Dockerfile  
-    container_name: cont-servidor
+    container_name: cont-servidor1
     ports:
-      - "0.0.0.0:3000:3000"
+      - "3000:3000"
     volumes:
       - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
     networks:
@@ -20,9 +20,9 @@ services:
     build:
       context: ./servidor2  # Caminho para o diretório onde está o Dockerfile do servidor
       dockerfile: Dockerfile  
-    container_name: cont-servidor
+    container_name: cont-servidor2
     ports:
-      - "0.0.0.0:4000:4000"
+      - "4000:4000"
     volumes:
       - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
     networks:
@@ -35,9 +35,9 @@ services:
     build:
       context: ./servidor3  # Caminho para o diretório onde está o Dockerfile do servidor
       dockerfile: Dockerfile  
-    container_name: cont-servidor
+    container_name: cont-servidor3
     ports:
-      - "0.0.0.0:5000:5000"
+      - "6000:6000"
     volumes:
       - /mnt/wsl/Ubuntu/codes/my-app-redes/servidor/trechos_viagens.json:/data/trechos_viagens.json
     networks:
@@ -52,6 +52,10 @@ services:
       dockerfile: Dockerfile 
     networks:
       - mynetwork
+    environment:
+      SERVER1_URL: "http://servidor1:3000"
+      SERVER2_URL: "http://servidor2:4000"
+      SERVER3_URL: "http://servidor3:6000"
 
     stdin_open: true  # Similar ao -i
     tty: true

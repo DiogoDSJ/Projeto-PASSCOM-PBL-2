@@ -13,9 +13,10 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
-SERVER_1_URL = "http://localhost:3000"
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:5000"
+SERVER_1_URL = "http://servidor1:3000"
+SERVER_2_URL = "http://servidor2:4000"
+SERVER_3_URL = "http://servidor3:6000"
+
 
 # Classe Cliente
 class Cliente:
@@ -513,4 +514,4 @@ def inicializar_arquivos():
 inicializar_arquivos()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    app.run(debug=True, port=3000, host = '0.0.0.0')
