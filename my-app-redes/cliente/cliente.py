@@ -9,10 +9,15 @@ import json
 # conectar entre conteiners localmente
 SERVER_HOST = 'servidor1'  # localhost ou servidor1
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
-SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
+'''SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
+'''
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
+
+SERVER_1_URL = "http://172.16.103.237:3000"
+SERVER_2_URL = "http://172.16.103.237:4000"
+SERVER_3_URL = "http://172.16.103.237:6000"
 
 '''
 
@@ -137,9 +142,27 @@ def comprar_passagem():
         print("CPF inválido. Deve conter exatamente 11 dígitos.")
         input("Pressione Enter para voltar ao menu principal...")
         return
-    situacao_cadastro = requests.post(f"{BASE_URL}/cadastro", json={"cpf": cpf})
-
-    print(f"{situacao_cadastro.json().get('msg', '')}")
+    tentativas = 0
+    servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    try:
+        while tentativas < len(servidores_urls):
+            try:
+                situacao_cadastro = requests.post(f"{servidores_urls[tentativas]}/cadastro", json={"cpf": cpf})
+                if situacao_cadastro.status_code == 200:
+                    print(f"{situacao_cadastro.json().get('msg', '')}")
+                    break  # Sai do loop se rotas forem encontradas
+                else:
+                    print(f"Erro no cadastro.")
+                    print(f"Tentativa {tentativas} de {len(servidores_urls)}")
+            except requests.exceptions.RequestException as e:
+                print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}")
+            tentativas += 1    
+    except requests.exceptions.RequestException as e:
+        print(f"Erro de conexão: {e}")
+    if(tentativas == 3):
+        print("Compra cancelada.")
+        input("Pressione Enter para voltar ao menu principal...")
+        return
     print("Escolha a origem:")
     cidades = print_cidades()
     try:
@@ -169,23 +192,32 @@ def comprar_passagem():
         "origem": cidade_origem,
         "destino": cidade_destino
     }
-    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
-    i = 0
+    tentativas = 0
+    servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    rotas = None
     try:
-        response = requests.get(f"{servidores[i]}/buscar", params=params)
-        if response.status_code == 200:
-            rotas = response.json()
-            if not rotas:
-                print("Não há rotas disponíveis para essa viagem.")
-                input("Pressione Enter para voltar ao menu principal...")
-                return
-        else:
-            print("Servidor indisponivel, tentando em outro...")
-            i = i+1
-        if(i == 4):
-            print("Não há servidor disponível.")
+        while tentativas < len(servidores_urls):
+            try:
+                response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params, timeout=10)
+                if response.status_code == 200:
+                    rotas = response.json()
+                    if rotas:
+                        print(f"Rotas encontradas no servidor {servidores_urls[tentativas]}")
+                        break  # Sai do loop se rotas forem encontradas
+                else:
+                    print(f"Erro ao buscar rotas no servidor {servidores_urls[tentativas]}: {response.json().get('msg', '')}")
+            except requests.exceptions.RequestException as e:
+                print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}: {e}")
+            except requests.exceptions.ConnectionError as e:
+                print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}: {e}")
+            tentativas += 1
+            print(f"Tentativa {tentativas} de {len(servidores_urls)}")
+
+        if rotas is None:
+            print("Não há rotas disponíveis para essa viagem.")
             input("Pressione Enter para voltar ao menu principal...")
             return
+        
         print("\nRotas disponíveis:")
         for id_rota, detalhes in rotas.items():
             trajeto = " -> ".join(detalhes['caminho'])
@@ -212,15 +244,27 @@ def comprar_passagem():
             "cpf": cpf,  # Adiciona o CPF na payload
             "servidores" : servidores
         }
-        compra_response = requests.post(f"{BASE_URL}/comprar", json=payload)
-        if compra_response.status_code == 200:
-            print("Compra realizada com sucesso!")
-        else:
-            print(f"Erro na compra: {compra_response.json().get('msg', '')}")
+        tentativas = 0
+        try:
+            while tentativas < len(servidores_urls):
+                try:
+                    compra_response = requests.post(f"{servidores_urls[tentativas]}/comprar", json=payload)
+                    if compra_response.status_code == 200:
+                        print("Compra realizada com sucesso!")
+                        break  # Sai do loop se rotas forem encontradas
+                    else:
+                        print(f"Erro ao realizar compra pelo servidor {tentativas+1}, {compra_response.json().get('msg', '')}.")
+                        print(f"Tentativa {tentativas} de {len(servidores_urls)}")
+                except requests.exceptions.RequestException as e:
+                    print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}")
+                tentativas += 1    
+        except requests.exceptions.RequestException as e:
+            print(f"Erro de conexão: {e}")
 
 
     except requests.exceptions.RequestException as e:
         print(f"Erro de conexão: {e}")
+
             
 
 
