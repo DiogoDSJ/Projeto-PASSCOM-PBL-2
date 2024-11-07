@@ -11,9 +11,17 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s3.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
-SERVER_1_URL = "http://172.16.103.237:3000"
-SERVER_2_URL = "http://172.16.103.237:4000"
-SERVER_3_URL = "http://172.16.103.237:6000"
+'''
+SERVER_1_URL = "http://localhost:3000" 
+SERVER_2_URL = "http://localhost:4000"
+SERVER_3_URL = "http://localhost:6000"
+'''
+
+
+SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
+SERVER_2_URL = "http://servidor2:4000"
+SERVER_3_URL = "http://servidor3:6000"
+
 
 
 # Lock para sincronização de acesso aos arquivos
@@ -262,16 +270,32 @@ def preparar_compra():
                 if len(prepare_responses) == 0 or all(resp.status_code == 200 for resp in prepare_responses):
                     # Fase de commit
                     if(server1): # somente se usa
-                        requests.post(f"{SERVER_1_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
-                    if(server2): # somente se usa
-                        requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
-                    if(server3): # somente se usa
-                        requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
+                        response1 = requests.post(f"{SERVER_1_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
+                    elif(server2): # somente se usa
+                        response1 = requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
+                    elif(server3): # somente se usa
+                        response1 = requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
                     # Adicionar passagem ao cliente
-                    novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
-                    cliente.trechos[str(novo_id)] = caminho
-                    atualizar_cliente(cliente)
-                    return jsonify({"msg": "Passagem comprada com sucesso"}), 200
+                    response1res = response1.status_code
+
+                    if response1res == 200:
+
+                        print(server1, server2, server3)
+                        novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
+                        cliente.trechos[str(novo_id)] = caminho
+                        atualizar_cliente(cliente)
+                        return jsonify({"msg": "Passagem comprada com sucesso"}), 200
+                    
+                    else:
+
+                        # Se algum servidor falhar, faz rollback
+                        if(server1): # somente se usa
+                            requests.post(f"{SERVER_1_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
+                        if(server2): # somente se usa
+                            requests.post(f"{SERVER_2_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
+                        return jsonify({"msg": "Compra cancelada, não foi possível concluir a transação"}), 400
+
+                    
                 else:
                     # Se algum servidor falhar, faz rollback
                     if(server1): # somente se usa
@@ -405,7 +429,6 @@ def prepare():
     sucesso = True
 
     try :
-
         if lock.acquire(blocking=False):
             return jsonify({"status": "prepare"}), 200
         else:

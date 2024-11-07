@@ -7,7 +7,7 @@
                 "server_id": "server1"
             },
             "Brasília-DF": {
-                "vagas": 4,
+                "vagas": 3,
                 "preco": 150,
                 "server_id": "server1"
             }
@@ -19,7 +19,7 @@
                 "server_id": "server1"
             },
             "Brasília-DF": {
-                "vagas": 1,
+                "vagas": 0,
                 "preco": 80,
                 "server_id": "server1"
             },
@@ -31,7 +31,7 @@
         },
         "Brasília-DF": {
             "São Paulo-SP": {
-                "vagas": 4,
+                "vagas": 3,
                 "preco": 150,
                 "server_id": "server1"
             },
@@ -41,7 +41,7 @@
                 "server_id": "server1"
             },
             "Rio de Janeiro-RJ": {
-                "vagas": 2,
+                "vagas": 1,
                 "preco": 80,
                 "server_id": "server1"
             }
@@ -65,31 +65,31 @@
                 "server_id": "server1"
             },
             "Recife-PE": {
-                "vagas": 5,
+                "vagas": 3,
                 "preco": 70,
                 "server_id": "server1"
             }
         },
         "Recife-PE": {
             "Fortaleza-CE": {
-                "vagas": 4,
+                "vagas": 0,
                 "preco": 80,
                 "server_id": "server1"
             },
             "Porto Alegre-RS": {
-                "vagas": 1,
+                "vagas": 0,
                 "preco": 130,
                 "server_id": "server1"
             }
         },
         "Porto Alegre-RS": {
             "Recife-PE": {
-                "vagas": 1,
+                "vagas": 0,
                 "preco": 150,
                 "server_id": "server1"
             },
             "Curitiba-PR": {
-                "vagas": 4,
+                "vagas": 3,
                 "preco": 95,
                 "server_id": "server1"
             }

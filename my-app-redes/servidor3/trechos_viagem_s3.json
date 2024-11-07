@@ -14,7 +14,7 @@
         },
         "Rio de Janeiro-RJ": {
             "Belo Horizonte-MG": {
-                "vagas": 10,
+                "vagas": 9,
                 "preco": 80,
                 "server_id": "server3"
             },
@@ -24,7 +24,7 @@
                 "server_id": "server3"
             },
             "São Paulo-SP": {
-                "vagas": 7,
+                "vagas": 3,
                 "preco": 130,
                 "server_id": "server3"
             }
@@ -36,7 +36,7 @@
                 "server_id": "server3"
             },
             "São Paulo-SP": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 70,
                 "server_id": "server3"
             }
@@ -55,12 +55,12 @@
         },
         "Salvador-BA": {
             "Fortaleza-CE": {
-                "vagas": 3,
+                "vagas": 1,
                 "preco": 110,
                 "server_id": "server3"
             },
             "Rio de Janeiro-RJ": {
-                "vagas": 6,
+                "vagas": 1,
                 "preco": 160,
                 "server_id": "server3"
             }
@@ -72,7 +72,7 @@
                 "server_id": "server3"
             },
             "Salvador-BA": {
-                "vagas": 4,
+                "vagas": 0,
                 "preco": 100,
                 "server_id": "server3"
             }
@@ -84,7 +84,7 @@
                 "server_id": "server3"
             },
             "Belo Horizonte-MG": {
-                "vagas": 3,
+                "vagas": 1,
                 "preco": 110,
                 "server_id": "server3"
             }

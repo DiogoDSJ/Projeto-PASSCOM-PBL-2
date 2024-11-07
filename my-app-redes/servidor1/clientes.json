@@ -43,6 +43,13 @@
             "9": [
                 "Rio de Janeiro-RJ",
                 "Salvador-BA"
+            ],
+            "10": [
+                "Aracaju-SE",
+                "Salvador-BA",
+                "Fortaleza-CE",
+                "Recife-PE",
+                "Belo Horizonte-MG"
             ]
         }
     },
