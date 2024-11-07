@@ -108,7 +108,7 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
   <p>Para coordenar a execução das transações de compra, o protocolo 2PC é complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Essa trava permanece ativa durante as fases de Preparação e Commit do 2PC. Somente após a conclusão da transação, seja pelo commit ou pelo abort, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados.
 </p>
 
-<p>Caso o servidor A não consiga atender à solicitação diretamente, ele inicia uma transação distribuída, consultando os servidores B e C. A compra é efetivada apenas se todos os servidores confirmarem a disponibilidade do trecho. O uso de locks em conjunto com o protocolo 2PC proporciona segurança contra inconsistências e assegura que as operações sejam realizadas de forma atômica, mesmo em cenários com múltiplas consultas simultâneas.
+<p>Caso o servidor A não consiga atender à solicitação diretamente, ele inicia uma transação distribuída, consultando os servidores B e C. A compra é efetivada apenas se todos os servidores confirmarem que não estão com acesso restrito aos arquivos e as vagas estão disponíveis. O uso de locks em conjunto com o protocolo 2PC proporciona segurança contra inconsistências e assegura que as operações sejam realizadas de forma atômica, mesmo em cenários com múltiplas consultas simultâneas.
 </p>
 
 <h4>Detalhamento do Caso de Uso:</h4>
