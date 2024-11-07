@@ -10,18 +10,9 @@ app = Flask(__name__)
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s2.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
 
-
-''' conectar entre conteiners localmente
-SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
-SERVER_2_URL = "http://servidor2:4000"
-SERVER_3_URL = "http://servidor3:6000"
-'''
-
-#conectando localmente
-SERVER_1_URL = "http://localhost:3000" 
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:6000"
-
+SERVER_1_URL = "http://172.16.103.237:3000"
+SERVER_2_URL = "http://172.16.103.237:4000"
+SERVER_3_URL = "http://172.16.103.237:6000"
 
 
 # Lock para sincronização de acesso aos arquivos
@@ -306,6 +297,7 @@ def ver_passagens():
         return jsonify({"msg": "Cliente não encontrado."}), 404
 
     return jsonify(cliente.trechos), 200
+
 @app.route('/buscar', methods=['GET'])
 def buscar_rotas():
     origem = request.args.get('origem')
@@ -313,90 +305,83 @@ def buscar_rotas():
 
     if not origem or not destino:
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400
+    
+    trechos_viagem = {}
+    servidores_externos = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]  # URLs dos servidores externos
 
-    trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_2_URL, SERVER_3_URL]  # URLs dos servidores externos
+    trechos_viagem = coletar_trechos(trechos_viagem, servidores_externos)
     
     rotas = {}
     id_rota = 1
-    
+
     def dfs(cidade_atual, caminho, visitados, preco_total, servidores_incluidos):
         nonlocal id_rota
         caminho.append(cidade_atual)
         visitados.add(cidade_atual)
 
-        # Se a cidade atual for o destino, salva a rota completa
         if cidade_atual == destino:
+            # Registrar a rota e os servidores incluídos
             rotas[id_rota] = {
-                "caminho": caminho.copy(),
-                "preco_total": preco_total,
-                "servidores_incluidos": list(servidores_incluidos)  # Lista dos servidores usados
+                "caminho": caminho[:],
+                "preco_total": preco_total,  # Preço total
+                "servidores_incluidos": servidores_incluidos[:]  # Lista dos servidores usados na ordem
             }
             id_rota += 1
         else:
-            # Obtém os trechos disponíveis para a cidade atual
-            trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
-
-            for vizinho, info in trechos_disponiveis.items():
-                # Verifica se há vagas e se o vizinho ainda não foi visitado
+            for vizinho, info in trechos_viagem.get(cidade_atual, {}).items():
                 if info["vagas"] > 0 and vizinho not in visitados:
-                    # Identifica o servidor do trecho atual
-                    server_id = info.get("server_id", "local")  # Assume "local" se for do próprio servidor
-                    if server_id != "local":
-                        servidores_incluidos.add(server_id)  # Adiciona o servidor externo ao conjunto
-                    
-                    # Chama o DFS para o próximo trecho
-                    dfs(
-                        vizinho, 
-                        caminho, 
-                        visitados, 
-                        preco_total + info.get("preco", 0), 
-                        servidores_incluidos
-                    )
+                    # Adicionar o server_id à lista de servidores incluídos
+                    servidores_incluidos.append(info["server_id"])  # Adiciona o server_id ao caminho
 
-                    # Remove o servidor se ele foi adicionado neste trecho
-                    if server_id != "local":
-                        if server_id in servidores_incluidos:  # Verifica se o servidor está no conjunto
-                            servidores_incluidos.remove(server_id)  # Remove o servidor do conjunto
-        print(servidores_incluidos)
+                    # Somar o preço da viagem atual ao preço total e chamar a recursão
+                    dfs(vizinho, caminho[:], visitados, preco_total + info["preco"], servidores_incluidos)
+
+                    # Remover o último server_id ao voltar da recursão
+                    servidores_incluidos.pop()
+
         caminho.pop()
         visitados.remove(cidade_atual)
 
-    # Inicia a busca em profundidade
-    dfs(origem, [], set(), 0, set())
+
+    # Iniciar a DFS a partir da origem com lista para servidores_incluidos
+    dfs(origem, [], set(), 0, [])
+
     return jsonify(rotas), 200
 
 
-@app.route('/obter_trechos', methods=['GET'])
-def obter_trechos():
-    cidade_atual = request.args.get('cidade')
-    if not cidade_atual:
-        return jsonify({"msg": "Cidade não informada"}), 400
 
-    trechos_viagem = carregar_trechos()
-    servidores_externos = [SERVER_2_URL, SERVER_3_URL]
 
-    trechos_disponiveis = obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos)
-    return jsonify(trechos_disponiveis), 200
+def coletar_trechos(trechos_viagem, servidores_externos):
+    """
+    Coleta e mescla os trechos de todos os servidores, incluindo os locais e externos.
+    """
+    trechos_mesclados = trechos_viagem.copy()  # Começa com os trechos locais
 
-def obter_trechos_plus(cidade_atual, trechos_viagem, servidores_externos):
-    # Tenta obter trechos locais primeiro
-    trechos_disponiveis = trechos_viagem.get(cidade_atual, {})
+    servidores_visitados = set()
 
-    # Se não houver trechos locais, tenta buscar em servidores externos
-    if not trechos_disponiveis:
-        for url in servidores_externos:
+    # Coleta trechos dos servidores externos
+    for url in servidores_externos:
+        if url not in servidores_visitados:
             try:
-                response = requests.get(f"{url}/obter_trechos", params={"cidade": cidade_atual}, timeout=10)
+                servidores_visitados.add(url)
+                response = requests.get(f"{url}/carregar_trecho_local", timeout=10)
                 if response.status_code == 200:
-                    trechos_disponiveis = response.json()
-                    if trechos_disponiveis:
-                        break
-            except requests.RequestException:
-                continue
-            
+                    trechos_externos = response.json()
 
-    return trechos_disponiveis
+                    # Mescla os trechos externos nos trechos locais
+                    for cidade, info in trechos_externos.items():
+                        if cidade not in trechos_mesclados:
+                            trechos_mesclados[cidade] = info
+                        else:
+                            # Mescla as informações (adiciona se não existir)
+                            trechos_mesclados[cidade].update(info)  # Supondo que `info` seja um dicionário
+            except requests.RequestException:
+                continue  # Se houver erro, ignora e passa para o próximo servidor
+    print(f"trechos mesclados {trechos_mesclados}")
+    for origem in trechos_mesclados:
+        print(f"origem:{origem} | destino{trechos_mesclados[origem]}")
+    return trechos_mesclados
+
 
 
 
