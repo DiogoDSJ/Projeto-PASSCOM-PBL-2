@@ -87,6 +87,33 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
   
 </div>
 
+<h3>Buscar Possibilidades de Rotas (<code>buscar_rotas()</code>)</h3>
+    <ul>
+        <li><strong>Endpoint:</strong> /buscar</li>
+        <li><strong>Método:</strong> GET</li>
+        <li><strong>Parâmetros:</strong> HTTP - Cidades de origem e destino</li>
+        <li><strong>Retornos:</strong> JSON - status de busca e rotas solicitadas (400 - erro de parâmetro, 200 - possibilidade de rotas)</li>
+        <li><strong>Descrição:</strong> Permite buscar rotas entre uma origem e um destino, retornando as rotas possíveis e seus custos.</li>
+    </ul>
+
+<h3>Remover Vaga (<code>remover_uma_vaga()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /remover_vaga</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status da remoção (400 - erro, 200 - vaga removida com sucesso)</li> <li><strong>Descrição:</strong> Remove uma vaga disponível em um trecho específico entre duas cidades, ajustando a capacidade disponível do trecho.</li> </ul>
+
+<h3>Carregar Trechos Locais (<code>carregar_trechos_locais()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /carregar_trecho_local</li> <li><strong>Método:</strong> GET</li> <li><strong>Parâmetros:</strong> N/A</li> <li><strong>Retornos:</strong> JSON - lista de trechos locais disponíveis no servidor (200 - sucesso)</li> <li><strong>Descrição:</strong> Retorna os trechos de viagem locais disponíveis no servidor atual, incluindo as cidades de origem e destino e as vagas disponíveis.</li> </ul>
+
+<h3>Inicializar Arquivo (<code>inicializar_arquivo()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /inicializar_arquivo</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Dados iniciais para configurar o arquivo de trechos</li> <li><strong>Retornos:</strong> JSON - status da inicialização (200 - sucesso, 500 - erro interno)</li> <li><strong>Descrição:</strong> Inicializa o arquivo de trechos de viagem com os dados fornecidos, substituindo qualquer conteúdo existente.</li> </ul>
+
+<h3>Verificar Disponibilidade (<code>verificar_disponibilidade()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /verificar_disponibilidade</li> <li><strong>Método:</strong> GET</li> <li><strong>Parâmetros:</strong> HTTP - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status da disponibilidade (200 - disponível, 404 - não disponível)</li> <li><strong>Descrição:</strong> Verifica se há vagas disponíveis para um trecho específico entre uma cidade de origem e destino.</li> </ul>
+
+<h3>Preparar para Compra (<code>prepare()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /prepare</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status de preparação (200 - sucesso, 409 - conflito)</li> <li><strong>Descrição:</strong> Verifica e bloqueia a concorrência para uma operação de compra em um trecho, garantindo que a operação esteja pronta para o próximo estágio sem conflitos.</li> </ul>
+
+<h3>Confirmar Compra (<code>commit()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /commit</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status da confirmação (200 - sucesso, 404 - erro)</li> <li><strong>Descrição:</strong> Confirma a compra de uma vaga em um trecho previamente bloqueado na fase de preparação.</li> </ul>
+
+<h3>Abortar Compra (<code>abort()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /abort</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status do aborto (200 - sucesso, 404 - erro)</li> <li><strong>Descrição:</strong> Aborta a operação de compra de vaga em um trecho, liberando qualquer bloqueio feito durante a fase de preparação.</li> </ul>
+
+
+  
+</div>
+
 <div id = "roteamento">
 
   <h2>Roteamento</h2>
@@ -101,15 +128,13 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
 
 <div id = "concorrencia">
   <h2>Concorrência distribuida</h2>
-  <p>O sistema de compra de passagens foi projetado utilizando o protocolo de confirmação em duas fases (Two-Phase Commit - 2PC) para gerenciar a concorrência em um ambiente distribuído. O 2PC é um protocolo que assegura a consistência de dados em transações que envolvem múltiplas fontes de dados. Ele garante que uma operação distribuída seja realizada de forma atômica: ou todos os participantes confirmam a execução da operação, ou ela é cancelada para todos, preservando a integridade dos dados. Este protocolo é essencial em sistemas distribuídos, pois ajuda a evitar inconsistências e conflitos que podem surgir devido a falhas de comunicação ou concorrência.</p>
+  <p>O sistema de compra de passagens foi projetado utilizando algumas funcionalidades do protocolo de confirmação em duas fases (Two-Phase Commit - 2PC) para gerenciar a concorrência em um ambiente distribuído. O 2PC é um protocolo que assegura a consistência de dados em transações que envolvem múltiplas fontes de dados. Ele garante que uma operação distribuída seja realizada de forma atômica: ou todos os participantes confirmam a execução da operação, ou ela é cancelada para todos, preservando a integridade dos dados. Este protocolo é essencial em sistemas distribuídos, pois ajuda a evitar inconsistências e conflitos que podem surgir devido a falhas de comunicação ou concorrência.</p>
 
-  <p>O sistema consiste em um aplicativo cliente e três servidores (A, B e C), que compartilham informações sobre os trechos de viagem disponíveis. O servidor A atua como coordenador das transações, enquanto os servidores B e C são responsáveis por partes específicas dos dados (considerando que, se o cliente acessar o servidor B, ou C, ele se torna o servidor coordenador da operação). Quando um cliente solicita a compra de uma passagem, ele se conecta ao servidor A, que primeiro verifica a disponibilidade de trechos localmente. Se o trecho solicitado não estiver disponível, o servidor A consulta os servidores B e C. Essa abordagem permite uma gestão eficaz das requisições de compra e assegura a consistência entre os servidores.</p>
+  <p>O sistema consiste em um aplicativo cliente e três servidores (A, B e C), que compartilham informações sobre os trechos de viagem disponíveis. O servidor A atua como coordenador das transações, enquanto os servidores B e C são responsáveis por partes específicas dos dados (considerando que, se o cliente acessar o servidor B, ou C, ele se torna o servidor coordenador da operação). Quando um cliente solicita a compra de uma passagem, ele se conecta ao servidor A, que solicita todas as rotas possíveis entre o servidor B e C e apresenta todas as possibilidades possíveis..</p>
 
-  <p>Para coordenar a execução das transações de compra, o protocolo 2PC é complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Essa trava permanece ativa durante as fases de Preparação e Commit do 2PC. Somente após a conclusão da transação, seja pelo commit ou pelo abort, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados.
+  <p>Para coordenar a execução das transações de compra, todo o processo é o complementado pelo uso de locks, que controlam o acesso aos arquivos de dados de cada servidor. Assim que uma transação é iniciada, cada servidor aplica um lock ao seu arquivo de trechos, impedindo que outras transações o modifiquem ou consultem simultaneamente. Somente após a conclusão da transação, o lock é liberado, permitindo que outros processos acessem o arquivo. Essa estratégia é crucial para evitar conflitos e inconsistências que poderiam surgir durante a reserva e a atualização dos dados.
 </p>
 
-<p>Caso o servidor A não consiga atender à solicitação diretamente, ele inicia uma transação distribuída, consultando os servidores B e C. A compra é efetivada apenas se todos os servidores confirmarem que não estão com acesso restrito aos arquivos e as vagas estão disponíveis. O uso de locks em conjunto com o protocolo 2PC proporciona segurança contra inconsistências e assegura que as operações sejam realizadas de forma atômica, mesmo em cenários com múltiplas consultas simultâneas.
-</p>
 
 <h4>Detalhamento do Caso de Uso:</h4>
 
