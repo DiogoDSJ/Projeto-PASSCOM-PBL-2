@@ -127,10 +127,10 @@ def atualizar_cliente_endpoint():
         if cliente.cpf == cliente_atualizado.cpf:
             clientes[idx] = cliente_atualizado
             salvar_clientes(clientes)
-            return
+            return jsonify({"msg": "Cliente atualizado"}), 200
     # Se não encontrar, adicionar
     adicionar_cliente(cliente_atualizado)
-    return jsonify({"msg": "Cliente atualizado"}), 200
+    return jsonify({"msg": "Cliente adicionado"}), 200
 
 
 @app.route('/remover_vaga', methods=['POST'])
@@ -316,7 +316,6 @@ def preparar_compra():
 
         
 
-
         if sucesso:
             # Fase de preparação: notificar outros servidores
             try:
@@ -397,18 +396,11 @@ def preparar_compra():
 
                         params_cpf = {"cpf": cliente.cpf}
 
+                    
 
                         clientecopy1 = cliente
                         
-                        clientecopy2 = requests.post(f"{SERVER_2_URL}/encontrar_cliente", params = params_cpf)
-                        clientecopy3 = requests.post(f"{SERVER_3_URL}/encontrar_cliente", params = params_cpf)
-                        
-                        clientecopy2 = clientecopy2.json()
-                        clientecopy2 = Cliente.from_dict(clientecopy2)
-                        
-
-                        clientecopy3 = clientecopy3.json()
-                        clientecopy3 = Cliente.from_dict(clientecopy3)
+                   
 
                         if server1:
                           
@@ -418,15 +410,33 @@ def preparar_compra():
                             atualizar_cliente(clientecopy1)
 
                         if server2:
+
+
+                            clientecopy2 = requests.post(f"{SERVER_2_URL}/encontrar_cliente", params = params_cpf)
+                            clientecopy2 = clientecopy2.json()
+                            clientecopy2 = Cliente.from_dict(clientecopy2)
                           
-                            novo_id = int(max(clientecopy2.trechos.keys(), default=0)) + 1
+                            if clientecopy2:
+                                novo_id = int(max(clientecopy2.trechos.keys(), default=0)) + 1
+                            else:
+                                novo_id = 0 
+
                             clientecopy2.trechos[str(novo_id)] = rotas_server2
                             cliente_copy = clientecopy2.__dict__
                             retorno = requests.post(f"{SERVER_2_URL}/atualizar_cliente", json=cliente_copy)
 
                         if server3:
+
+
+                            clientecopy3 = requests.post(f"{SERVER_3_URL}/encontrar_cliente", params = params_cpf)
+                            clientecopy3 = clientecopy3.json()
+                            clientecopy3 = Cliente.from_dict(clientecopy3)
                           
-                            novo_id = int(max(clientecopy3.trechos.keys(), default=0)) + 1
+                            if clientecopy3:
+                                novo_id = int(max(clientecopy3.trechos.keys(), default=0)) + 1
+                            else:
+                                novo_id = 0 
+
                             clientecopy3.trechos[str(novo_id)] = rotas_server3
                             cliente_copy = clientecopy3.__dict__
                             retorno = requests.post(f"{SERVER_3_URL}/atualizar_cliente", json=cliente_copy)

@@ -7,14 +7,14 @@
                 "server_id": "server3"
             },
             "Curitiba-PR": {
-                "vagas": 6,
+                "vagas": 8,
                 "preco": 90,
                 "server_id": "server3"
             }
         },
         "Rio de Janeiro-RJ": {
             "Belo Horizonte-MG": {
-                "vagas": 7,
+                "vagas": 9,
                 "preco": 80,
                 "server_id": "server3"
             },
@@ -24,14 +24,14 @@
                 "server_id": "server3"
             },
             "São Paulo-SP": {
-                "vagas": 1,
+                "vagas": 2,
                 "preco": 130,
                 "server_id": "server3"
             }
         },
         "Curitiba-PR": {
             "Florianópolis-SC": {
-                "vagas": 11,
+                "vagas": 12,
                 "preco": 60,
                 "server_id": "server3"
             },
@@ -48,7 +48,7 @@
                 "server_id": "server3"
             },
             "Rio de Janeiro-RJ": {
-                "vagas": 3,
+                "vagas": 2,
                 "preco": 90,
                 "server_id": "server3"
             }

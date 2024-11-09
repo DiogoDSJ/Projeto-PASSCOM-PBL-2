@@ -3,8 +3,18 @@
         "cpf": "11111111111",
         "trechos": {
             "1": [
+                "Salvador-BA",
                 "Rio de Janeiro-RJ",
-                "Belo Horizonte-MG"
+                "São Paulo-SP"
+            ],
+            "2": [
+                "Belo Horizonte-MG",
+                "Rio de Janeiro-RJ",
+                "Salvador-BA",
+                "Fortaleza-CE",
+                "Natal-RN",
+                "São Luís-MA",
+                "Belém-PA"
             ]
         }
     }
