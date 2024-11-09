@@ -2,29 +2,29 @@
     "trechos": {
         "São Paulo-SP": {
             "Rio de Janeiro-RJ": {
-                "vagas": 2,
+                "vagas": 1,
                 "preco": 100,
                 "server_id": "server1"
             },
             "Brasília-DF": {
-                "vagas": 3,
+                "vagas": 2,
                 "preco": 150,
                 "server_id": "server1"
             }
         },
         "Rio de Janeiro-RJ": {
             "São Paulo-SP": {
-                "vagas": 2,
+                "vagas": 5,
                 "preco": 100,
                 "server_id": "server1"
             },
             "Brasília-DF": {
-                "vagas": 0,
+                "vagas": 6,
                 "preco": 80,
                 "server_id": "server1"
             },
             "Salvador-BA": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 120,
                 "server_id": "server1"
             }
@@ -36,7 +36,7 @@
                 "server_id": "server1"
             },
             "Salvador-BA": {
-                "vagas": 3,
+                "vagas": 2,
                 "preco": 90,
                 "server_id": "server1"
             },
@@ -48,7 +48,7 @@
         },
         "Salvador-BA": {
             "Rio de Janeiro-RJ": {
-                "vagas": 6,
+                "vagas": 4,
                 "preco": 140,
                 "server_id": "server1"
             },
@@ -72,19 +72,19 @@
         },
         "Recife-PE": {
             "Fortaleza-CE": {
-                "vagas": 0,
+                "vagas": 8,
                 "preco": 80,
                 "server_id": "server1"
             },
             "Porto Alegre-RS": {
-                "vagas": 0,
+                "vagas": 7,
                 "preco": 130,
                 "server_id": "server1"
             }
         },
         "Porto Alegre-RS": {
             "Recife-PE": {
-                "vagas": 0,
+                "vagas": 9,
                 "preco": 150,
                 "server_id": "server1"
             },
@@ -101,7 +101,7 @@
                 "server_id": "server1"
             },
             "Manaus-AM": {
-                "vagas": 0,
+                "vagas": 10,
                 "preco": 200,
                 "server_id": "server1"
             }

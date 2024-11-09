@@ -15,5 +15,36 @@
                 "Belo Horizonte-MG"
             ]
         }
+    },
+    {
+        "cpf": "12345678910",
+        "trechos": {
+            "1": [
+                "Vitória-ES",
+                "Salvador-BA",
+                "São Paulo-SP",
+                "Porto Alegre-RS",
+                "Canoas-RS"
+            ],
+            "2": [
+                "Vitória-ES",
+                "Rio de Janeiro-RJ"
+            ],
+            "3": [
+                "Curitiba-PR",
+                "São Paulo-SP",
+                "Salvador-BA",
+                "Aracaju-SE",
+                "Maceió-AL",
+                "Recife-PE",
+                "Porto Alegre-RS",
+                "Canoas-RS"
+            ],
+            "4": [
+                "Salvador-BA",
+                "Aracaju-SE",
+                "Maceió-AL"
+            ]
+        }
     }
 ]

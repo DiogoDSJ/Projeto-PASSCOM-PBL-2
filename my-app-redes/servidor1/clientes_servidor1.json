@@ -1,0 +1,30 @@
+[
+    {
+        "cpf": "12345678910",
+        "trechos": {
+            "1": [
+                "Salvador-BA",
+                "Rio de Janeiro-RJ",
+                "São Paulo-SP"
+            ],
+            "2": [
+                "Salvador-BA",
+                "Rio de Janeiro-RJ",
+                "São Paulo-SP"
+            ],
+            "3": [
+                "Rio de Janeiro-RJ",
+                "São Paulo-SP",
+                "Brasília-DF",
+                "Salvador-BA"
+            ],
+            "4": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ",
+                "Salvador-BA",
+                "Recife-PE",
+                "Porto Alegre-RS"
+            ]
+        }
+    }
+]
