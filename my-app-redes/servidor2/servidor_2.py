@@ -341,60 +341,46 @@ def preparar_compra():
         
                         for i in range(len(servidores)):
                             
-                            if servidores[i] == "server1":
-                                
-                                if rotas_server1:
-                                    if (caminho[i] == rotas_server1[-1]):
-                                        
-                                        rotas_server1.append(caminho[i + 1])
-                                    else:
-                                        rotas_server1.append(caminho[i])
-                                        rotas_server1.append(caminho[i + 1])
-                                else:
-                                    rotas_server1.append(caminho[i])
-                                    rotas_server1.append(caminho[i + 1])
+                            lista_server1 = [] 
+                            lista_server2 = [] 
+                            lista_server3 = [] 
 
+
+                            if servidores[i] == "server1":
+                                                         
+                                lista_server1.append(caminho[i])
+                                lista_server1.append(caminho[i + 1])
+                                rotas_server1.append(lista_server1)
 
                             elif servidores[i] == "server2":
                                 
-                                if rotas_server2:
+                              
 
-                                    if (caminho[i] == rotas_server2[-1]):
-                                    
-                                        rotas_server2.append(caminho[i + 1])
-                                    else:
-                                        rotas_server2.append(caminho[i])
-                                        rotas_server2.append(caminho[i + 1])
-                                else:
-                                    rotas_server2.append(caminho[i])
-                                    rotas_server2.append(caminho[i + 1])
+                                lista_server2.append(caminho[i])
+                                lista_server2.append(caminho[i + 1])
+                                rotas_server2.append(lista_server2)
 
                                     
                             elif servidores[i] == "server3":
                                 
-                                if rotas_server3: 
                                     
-                                    if (caminho[i] == rotas_server3[-1]):
-                                        
-                                        rotas_server3.append(caminho[i + 1])
-                                    else:
-                                        rotas_server3.append(caminho[i])
-                                        rotas_server3.append(caminho[i + 1])
-                                else:
-                                    rotas_server3.append(caminho[i])
-                                    rotas_server3.append(caminho[i + 1])
+                                lista_server3.append(caminho[i])
+                                lista_server3.append(caminho[i + 1])
+                                rotas_server3.append(lista_server3)
 
                         params_cpf = {"cpf": cliente.cpf}
 
                     
 
-                        clientecopy2 = cliente
+                        clientecopy2 = encontrar_cliente(cliente.cpf)
 
 
                         if server2:
-                          
-                            novo_id = int(max(clientecopy2.trechos.keys(), default=0)) + 1
-                            clientecopy2.trechos[str(novo_id)] = rotas_server2
+                            
+                            for i in rotas_server2:
+
+                                novo_id = max(map(int, clientecopy2.trechos.keys()), default=0) + 1
+                                clientecopy2.trechos[str(novo_id)] = i
                      
                             atualizar_cliente(clientecopy2)
 
@@ -404,13 +390,16 @@ def preparar_compra():
                             clientecopy1 = clientecopy2.json()
                             clientecopy1 = Cliente.from_dict(clientecopy2)
                             
-                            if clientecopy1:
-                                novo_id = int(max(clientecopy1.trechos.keys(), default=0)) + 1
-                            else:
-                                novo_id = 0 
+                            for i in rotas_server1:
+
+                                if clientecopy1:
+                                    novo_id = max(map(int, clientecopy1.trechos.keys()), default=0) + 1
+                                else:
+                                    novo_id = 0 
                             
                           
-                            clientecopy1.trechos[str(novo_id)] = rotas_server1
+                                clientecopy1.trechos[str(novo_id)] = i
+                            
                             cliente_copy = clientecopy1.__dict__
                             retorno = requests.post(f"{SERVER_1_URL}/atualizar_cliente", json=cliente_copy)
 
@@ -421,12 +410,15 @@ def preparar_compra():
                             clientecopy3 = clientecopy3.json()
                             clientecopy3 = Cliente.from_dict(clientecopy3)
                             
-                            if clientecopy3:
-                                novo_id = int(max(clientecopy3.trechos.keys(), default=0)) + 1
-                            else:
-                                novo_id = 0 
-                            
-                            clientecopy3.trechos[str(novo_id)] = rotas_server3
+                            for i in rotas_server3:
+
+                                if clientecopy3:
+                                    novo_id = max(map(int, clientecopy3.trechos.keys()), default=0) + 1
+                                else:
+                                    novo_id = 0 
+                                
+                                clientecopy3.trechos[str(novo_id)] = i
+
                             cliente_copy = clientecopy3.__dict__
                             retorno = requests.post(f"{SERVER_3_URL}/atualizar_cliente", json=cliente_copy)
                             

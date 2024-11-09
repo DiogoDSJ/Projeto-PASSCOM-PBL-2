@@ -2,24 +2,24 @@
     "trechos": {
         "Belo Horizonte-MG": {
             "Vitória-ES": {
-                "vagas": 10,
+                "vagas": 6,
                 "preco": 95,
                 "server_id": "server2"
             },
             "São Paulo-SP": {
-                "vagas": 7,
+                "vagas": 6,
                 "preco": 130,
                 "server_id": "server2"
             }
         },
         "Vitória-ES": {
             "Rio de Janeiro-RJ": {
-                "vagas": 2,
+                "vagas": 1,
                 "preco": 70,
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 5,
+                "vagas": 0,
                 "preco": 160,
                 "server_id": "server2"
             },
@@ -36,12 +36,12 @@
                 "server_id": "server2"
             },
             "Porto Alegre-RS": {
-                "vagas": 2,
+                "vagas": 1,
                 "preco": 180,
                 "server_id": "server2"
             },
             "Belo Horizonte-MG": {
-                "vagas": 1,
+                "vagas": 0,
                 "preco": 120,
                 "server_id": "server2"
             }
@@ -53,14 +53,14 @@
                 "server_id": "server2"
             },
             "São Paulo-SP": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 110,
                 "server_id": "server2"
             }
         },
         "Porto Alegre-RS": {
             "Canoas-RS": {
-                "vagas": 4,
+                "vagas": 2,
                 "preco": 30,
                 "server_id": "server2"
             },
@@ -72,7 +72,7 @@
         },
         "Salvador-BA": {
             "Aracaju-SE": {
-                "vagas": 2,
+                "vagas": 0,
                 "preco": 90,
                 "server_id": "server2"
             },
@@ -84,7 +84,7 @@
         },
         "Aracaju-SE": {
             "Maceió-AL": {
-                "vagas": 4,
+                "vagas": 2,
                 "preco": 65,
                 "server_id": "server2"
             },
@@ -96,7 +96,7 @@
         },
         "Maceió-AL": {
             "Recife-PE": {
-                "vagas": 2,
+                "vagas": 1,
                 "preco": 55,
                 "server_id": "server2"
             },

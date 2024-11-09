@@ -1,0 +1,71 @@
+[
+    {
+        "cpf": "11111111111",
+        "trechos": {
+            "1": [
+                "Belo Horizonte-MG",
+                "Manaus-AM"
+            ],
+            "2": [
+                "Belo Horizonte-MG",
+                "São Paulo-SP"
+            ],
+            "3": [
+                "São Paulo-SP",
+                "Brasília-DF"
+            ],
+            "4": [
+                "Brasília-DF",
+                "Rio de Janeiro-RJ"
+            ],
+            "5": [
+                "Rio de Janeiro-RJ",
+                "Salvador-BA"
+            ],
+            "6": [
+                "Salvador-BA",
+                "Fortaleza-CE"
+            ],
+            "7": [
+                "Fortaleza-CE",
+                "Recife-PE"
+            ],
+            "8": [
+                "Recife-PE",
+                "Porto Alegre-RS"
+            ],
+            "9": [
+                "Porto Alegre-RS",
+                "Curitiba-PR"
+            ],
+            "10": [
+                "São Paulo-SP",
+                "Rio de Janeiro-RJ"
+            ],
+            "11": [
+                "Belo Horizonte-MG",
+                "Manaus-AM"
+            ],
+            "12": [
+                "Curitiba-PR",
+                "Porto Alegre-RS"
+            ],
+            "13": [
+                "Porto Alegre-RS",
+                "Recife-PE"
+            ],
+            "14": [
+                "Recife-PE",
+                "Fortaleza-CE"
+            ],
+            "15": [
+                "São Paulo-SP",
+                "Brasília-DF"
+            ],
+            "16": [
+                "Brasília-DF",
+                "Salvador-BA"
+            ]
+        }
+    }
+]

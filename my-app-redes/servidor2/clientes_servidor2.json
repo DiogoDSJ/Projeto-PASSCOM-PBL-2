@@ -3,16 +3,16 @@
         "cpf": "11111111111",
         "trechos": {
             "1": [
-                "Aracaju-SE",
-                "Salvador-BA",
-                "Vitória-ES",
-                "Belo Horizonte-MG"
+                "Belo Horizonte-MG",
+                "São Paulo-SP"
             ],
             "2": [
-                "Aracaju-SE",
-                "Salvador-BA",
-                "São Paulo-SP",
-                "Belo Horizonte-MG"
+                "Belo Horizonte-MG",
+                "Vitória-ES"
+            ],
+            "3": [
+                "Vitória-ES",
+                "Salvador-BA"
             ]
         }
     }
