@@ -19,7 +19,11 @@
                 "server_id": "server2"
             },
             "Salvador-BA": {
+<<<<<<< HEAD
                 "vagas": 0,
+=======
+                "vagas": 4,
+>>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 160,
                 "server_id": "server2"
             },
