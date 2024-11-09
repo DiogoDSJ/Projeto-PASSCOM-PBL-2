@@ -17,12 +17,12 @@ BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
 '''
 
 #conectando localmente
-SERVER_HOST = '192.168.1.156'  
+SERVER_HOST = '192.168.31.53'  
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
 
-SERVER_1_URL = "http://192.168.1.156:3000" 
-SERVER_2_URL = "http://192.168.1.156:4000"
-SERVER_3_URL = "http://192.168.1.156:6000"
+SERVER_1_URL = "http://192.168.31.53:3000" 
+SERVER_2_URL = "http://192.168.31.53:4000"
+SERVER_3_URL = "http://192.168.31.53:6000"
 
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
 
@@ -43,13 +43,12 @@ def exibir_menu_principal():
     print("4. Sair")
     print("="*30)
 
-def print_cidades():
+def obter_cidades():
     """Imprime as cidades disponíveis para escolha."""
     cidades = set()  # Usamos um set para garantir que as cidades não se repitam
 
     # Lista de URLs dos servidores
     servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
-
     for servidor in servidores:
         try:
             response = requests.get(f"{servidor}/obter_cidades")
@@ -63,11 +62,12 @@ def print_cidades():
     # Converte para lista e ordena as cidades antes de imprimir
     cidades = sorted(cidades)
     
-    # Imprime cada cidade
+
+    return cidades
+
+def print_cidades(cidades):
     for indice, cidade in enumerate(cidades, start=1):
         print(f"{indice}. {cidade}")
-        
-    return cidades
 
 def selecionar_cidade(indice, cidades):
     """Seleciona a cidade com base na opção escolhida."""
@@ -108,21 +108,23 @@ def ver_passagens_compradas():
         print("CPF inválido. Deve conter exatamente 11 dígitos.")
         input("Pressione Enter para voltar ao menu principal...")
         return
-
-    try:
-        response = requests.get(f"{BASE_URL}/passagens", params={"cpf": cpf})
-        if response.status_code == 200:
-            passagens = response.json()
-            if not passagens:
-                print("Você não possui passagens compradas.")
+    servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    for i in range(3):
+        try:
+            response = requests.get(f"{servidores_urls[i]}/passagens", params={"cpf": cpf})
+            if response.status_code == 200:
+                passagens = response.json()
+                if not passagens:
+                    print("Você não possui passagens compradas.")
+                else:
+                    print(f"Passagens servidor {i+1}:")
+                    for id_passagem, caminho in passagens.items():
+                        trajeto = " -> ".join(caminho)
+                        print(f"Trecho {id_passagem}: {trajeto}")
             else:
-                for id_passagem, caminho in passagens.items():
-                    trajeto = " -> ".join(caminho)
-                    print(f"Passagem {id_passagem}: {trajeto}")
-        else:
-            print(f"Erro ao buscar passagens: {response.json().get('msg', '')}")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro de conexão: {e}")
+                print(f"Erro ao buscar passagens: {response.json().get('msg', '')}")
+        except requests.exceptions.RequestException as e:
+            print(f"Erro de conexão: {e}")
 
     input("Pressione Enter para voltar ao menu principal...")
 
@@ -163,7 +165,8 @@ def comprar_passagem():
         input("Pressione Enter para voltar ao menu principal...")
         return
     print("Escolha a origem:")
-    cidades = print_cidades()
+    cidades = obter_cidades()
+    print_cidades(cidades)
     try:
         opcao_origem = int(input("Escolha a opção de origem: ").strip())
         cidade_origem = selecionar_cidade(opcao_origem, cidades)
@@ -177,7 +180,7 @@ def comprar_passagem():
     print("       COMPRAR PASSAGEM")
     print("="*30)
     print("Escolha o destino:")
-    print_cidades()
+    print_cidades(cidades)
     try:
         opcao_destino = int(input("Escolha a opção de destino: ").strip())
         cidade_destino = selecionar_cidade(opcao_destino, cidades)
@@ -200,7 +203,7 @@ def comprar_passagem():
                 response = requests.get(f"{servidores_urls[tentativas]}/buscar", params=params, timeout=10)
                 if response.status_code == 200:
                     rotas = response.json()
-                    if rotas:
+                    if len(rotas) > 0:
                         print(f"Rotas encontradas no servidor {servidores_urls[tentativas]}")
                         break  # Sai do loop se rotas forem encontradas
                 else:

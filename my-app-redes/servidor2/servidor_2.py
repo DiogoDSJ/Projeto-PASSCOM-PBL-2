@@ -11,9 +11,9 @@ CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s2.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor2.json"
 
 
-SERVER_1_URL = "http://192.168.1.156:3000" 
-SERVER_2_URL = "http://192.168.1.156:4000"
-SERVER_3_URL = "http://192.168.1.156:6000"
+SERVER_1_URL = "http://192.168.31.53:3000" 
+SERVER_2_URL = "http://192.168.31.53:4000"
+SERVER_3_URL = "http://192.168.31.53:6000"
 
 
 '''

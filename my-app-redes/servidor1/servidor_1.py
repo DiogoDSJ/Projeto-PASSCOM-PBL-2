@@ -15,9 +15,9 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor1.json"
 lock = threading.Lock()
 
 
-SERVER_1_URL = "http://192.168.1.156:3000" 
-SERVER_2_URL = "http://192.168.1.156:4000"
-SERVER_3_URL = "http://192.168.1.156:6000"
+SERVER_1_URL = "http://192.168.31.53:3000" 
+SERVER_2_URL = "http://192.168.31.53:4000"
+SERVER_3_URL = "http://192.168.31.53:6000"
 
 '''
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
