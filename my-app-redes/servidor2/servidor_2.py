@@ -8,17 +8,20 @@ app = Flask(__name__)
 
 # Caminhos dos arquivos JSON
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s2.json"
-CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
-'''
-SERVER_1_URL = "http://172.16.103.237:3000"
-SERVER_2_URL = "http://172.16.103.237:4000"
-SERVER_3_URL = "http://172.16.103.237:6000"
-'''
+CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor2.json"
 
 
+SERVER_1_URL = "http://192.168.1.156:3000" 
+SERVER_2_URL = "http://192.168.1.156:4000"
+SERVER_3_URL = "http://192.168.1.156:6000"
+
+
+'''
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
+'''
+
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
@@ -86,6 +89,16 @@ def encontrar_cliente(cpf):
             return cliente
     return None
 
+@app.route('/encontrar_cliente', methods=['POST'])
+def encontrar_cliente_endpoint():
+    clientes = carregar_clientes()
+    cpf = request.args.get('cpf')
+    for cliente in clientes:
+        if cliente.cpf == cpf:
+        
+            return jsonify(cliente.to_dict())
+    return jsonify({"msg": "Cliente nao encontrado"}), 400
+
 def adicionar_cliente(cliente):
     clientes = carregar_clientes()
     clientes.append(cliente)
@@ -99,6 +112,21 @@ def atualizar_cliente(cliente_atualizado):
             salvar_clientes(clientes)
             return
     adicionar_cliente(cliente_atualizado)
+
+@app.route('/atualizar_cliente', methods=['POST'])
+def atualizar_cliente_endpoint():
+
+    clientes = carregar_clientes()
+    data = request.json
+    cliente_atualizado = Cliente(**data)
+    for idx, cliente in enumerate(clientes):
+        if cliente.cpf == cliente_atualizado.cpf:
+            clientes[idx] = cliente_atualizado
+            salvar_clientes(clientes)
+            return
+    # Se não encontrar, adicionar
+    adicionar_cliente(cliente_atualizado)
+    return jsonify({"msg": "Cliente atualizado"}), 200
 
 @app.route('/remover_vaga', methods=['POST'])
 def remover_uma_vaga():
@@ -193,12 +221,12 @@ def cadastro():
 
     with lock:
         if encontrar_cliente(cpf):
-            return jsonify({"msg": "Cliente já existe"}), 409
+            return jsonify({"msg": "Cliente já existe [servidor2]"}), 409
 
         cliente = Cliente(cpf=cpf)
         adicionar_cliente(cliente)
 
-    return jsonify({"msg": "Cadastro realizado com sucesso"}), 201
+    return jsonify({"msg": "Cadastro realizado com sucesso [servidor2]"}), 200
 
 @app.route('/trechos', methods=['GET'])
 def listar_trechos():

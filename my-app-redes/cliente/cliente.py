@@ -5,31 +5,27 @@ import json
 
 # Configurações do servidor
 
-
+'''
 # conectar entre conteiners localmente
 SERVER_HOST = 'servidor1'  # localhost ou servidor1
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
-'''SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
+SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
-'''
+
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
-
-SERVER_1_URL = "http://172.16.103.237:3000"
-SERVER_2_URL = "http://172.16.103.237:4000"
-SERVER_3_URL = "http://172.16.103.237:6000"
-
 '''
 
 #conectando localmente
-SERVER_HOST = 'localhost'  
+SERVER_HOST = '192.168.1.156'  
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
-SERVER_1_URL = "http://localhost:3000" 
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:6000"
+
+SERVER_1_URL = "http://192.168.1.156:3000" 
+SERVER_2_URL = "http://192.168.1.156:4000"
+SERVER_3_URL = "http://192.168.1.156:6000"
 
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
-'''
+
 
 def limpar_tela():
     """Limpa a tela do terminal para uma visualização mais limpa."""
@@ -144,15 +140,18 @@ def comprar_passagem():
         return
     tentativas = 0
     servidores_urls = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+ 
     try:
         while tentativas < len(servidores_urls):
             try:
                 situacao_cadastro = requests.post(f"{servidores_urls[tentativas]}/cadastro", json={"cpf": cpf})
-                if situacao_cadastro.status_code == 200:
+                if situacao_cadastro.status_code == 200 or situacao_cadastro.status_code == 409:
+                    ver = True
                     print(f"{situacao_cadastro.json().get('msg', '')}")
                     break  # Sai do loop se rotas forem encontradas
                 else:
                     print(f"Erro no cadastro.")
+                    print(f"{situacao_cadastro.json().get('msg', '')}")
                     print(f"Tentativa {tentativas} de {len(servidores_urls)}")
             except requests.exceptions.RequestException as e:
                 print(f"Erro ao acessar o servidor {servidores_urls[tentativas]}")
@@ -273,7 +272,9 @@ def comprar_passagem():
 
 def main():
     """Função principal do cliente."""
+
     while True:
+        
         exibir_menu_principal()
         opcao = input("Escolha uma opção: ").strip()
         if opcao == "1":

@@ -1,0 +1,11 @@
+[
+    {
+        "cpf": "11111111111",
+        "trechos": {
+            "1": [
+                "Belo Horizonte-MG",
+                "São Paulo-SP"
+            ]
+        }
+    }
+]

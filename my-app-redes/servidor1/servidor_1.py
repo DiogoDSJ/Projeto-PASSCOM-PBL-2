@@ -9,20 +9,21 @@ app = Flask(__name__)
 
 # Caminhos dos arquivos JSON
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s1.json"
-CAMINHO_CLIENTES = Path(__file__).parent / "clientes.json"
+CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor1.json"
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
-'''
-SERVER_1_URL = "http://localhost:3000" 
-SERVER_2_URL = "http://localhost:4000"
-SERVER_3_URL = "http://localhost:6000"
-'''
 
+
+SERVER_1_URL = "http://192.168.1.156:3000" 
+SERVER_2_URL = "http://192.168.1.156:4000"
+SERVER_3_URL = "http://192.168.1.156:6000"
+
+'''
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
-
+'''
 
 # Classe Cliente
 class Cliente:
@@ -46,6 +47,7 @@ class Cliente:
 # saber em qual servidor está
 def get_server():
    return "server1"
+
 
 # Funções auxiliares para manipulação de JSON
 def salvar_json(dados, caminho_arquivo):
@@ -88,6 +90,18 @@ def encontrar_cliente(cpf):
             return cliente
     return None
 
+
+@app.route('/encontrar_cliente', methods=['POST'])
+def encontrar_cliente_endpoint():
+    clientes = carregar_clientes()
+    cpf = request.args.get('cpf')
+    for cliente in clientes:
+        if cliente.cpf == cpf:
+        
+            return jsonify(cliente.to_dict())
+    return jsonify({"msg": "Cliente nao encontrado"}), 400
+
+
 def adicionar_cliente(cliente):
     clientes = carregar_clientes()
     clientes.append(cliente)
@@ -102,6 +116,22 @@ def atualizar_cliente(cliente_atualizado):
             return
     # Se não encontrar, adicionar
     adicionar_cliente(cliente_atualizado)
+    
+@app.route('/atualizar_cliente', methods=['POST'])
+def atualizar_cliente_endpoint():
+
+    clientes = carregar_clientes()
+    data = request.json
+    cliente_atualizado = Cliente(**data)
+    for idx, cliente in enumerate(clientes):
+        if cliente.cpf == cliente_atualizado.cpf:
+            clientes[idx] = cliente_atualizado
+            salvar_clientes(clientes)
+            return
+    # Se não encontrar, adicionar
+    adicionar_cliente(cliente_atualizado)
+    return jsonify({"msg": "Cliente atualizado"}), 200
+
 
 @app.route('/remover_vaga', methods=['POST'])
 def remover_uma_vaga():
@@ -199,12 +229,12 @@ def cadastro():
 
     with lock:
         if encontrar_cliente(cpf):
-            return jsonify({"msg": "Cliente já existe"}), 409
+            return jsonify({"msg": "Cliente já existe [servidor1]"}), 409
 
         cliente = Cliente(cpf=cpf)
         adicionar_cliente(cliente)
 
-    return jsonify({"msg": "Cadastro realizado com sucesso"}), 201
+    return jsonify({"msg": "Cadastro realizado com sucesso [servidor1]"}), 200
 
 # Endpoint para listar trechos disponíveis
 @app.route('/trechos', methods=['GET'])
@@ -250,13 +280,43 @@ def preparar_compra():
                 sucesso = False
                 break
         # Verificar de que servidor vieram os trechos que fazem o caminho
+        
+
         for servidor in servidores:
             if(servidor == "server1"):
                 server1 = True
+                
             elif(servidor == "server2"):
                 server2 = True
+
             elif(servidor == "server3"):
                 server3 = True
+
+      
+        if server1:
+            
+            result = encontrar_cliente(cpf)
+
+            if result == None:
+
+                return jsonify({"msg": "Houve um erro inesperado no seu cadastro. Tente novamente mais tarde!"}), 400
+
+            
+        if server2:
+            
+            resposta2 = requests.post(f"{SERVER_2_URL}/cadastro", json={"cpf": cpf})
+            if resposta2.status_code not in [200,409]:
+                return jsonify({"msg": "Não foi possivel cadastrar o cliente em todos os servidores envolvidos na rota"}), 400
+        
+        if server3:
+            
+            resposta3 = requests.post(f"{SERVER_3_URL}/cadastro", json={"cpf": cpf})
+            if resposta3.status_code not in [200,409]:
+                return jsonify({"msg": "Não foi possivel cadastrar o cliente em todos os servidores envolvidos na rota"}), 400
+
+        
+
+
         if sucesso:
             # Fase de preparação: notificar outros servidores
             try:
@@ -282,13 +342,100 @@ def preparar_compra():
                     # Adicionar passagem ao cliente
                     response1res = response1.status_code
 
-                    if response1res == 200:
 
-                        print(server1, server2, server3)
-                        novo_id = int(max(cliente.trechos.keys(), default=0)) + 1
-                        cliente.trechos[str(novo_id)] = caminho
-                        atualizar_cliente(cliente)
+                    if response1res == 200:
+                        
+                        rotas_server1 = [] 
+                        rotas_server2 = [] 
+                        rotas_server3 = [] 
+
+        
+                        for i in range(len(servidores)):
+                            
+                            if servidores[i] == "server1":
+                                
+                                if rotas_server1:
+                                    if (caminho[i] == rotas_server1[-1]):
+                                        
+                                        rotas_server1.append(caminho[i + 1])
+                                    else:
+                                        rotas_server1.append(caminho[i])
+                                        rotas_server1.append(caminho[i + 1])
+                                else:
+                                    rotas_server1.append(caminho[i])
+                                    rotas_server1.append(caminho[i + 1])
+
+
+                            elif servidores[i] == "server2":
+                                
+                                if rotas_server2:
+
+                                    if (caminho[i] == rotas_server2[-1]):
+                                    
+                                        rotas_server2.append(caminho[i + 1])
+                                    else:
+                                        rotas_server2.append(caminho[i])
+                                        rotas_server2.append(caminho[i + 1])
+                                else:
+                                    rotas_server2.append(caminho[i])
+                                    rotas_server2.append(caminho[i + 1])
+
+                                    
+                            elif servidores[i] == "server3":
+                                
+                                if rotas_server3: 
+                                    
+                                    if (caminho[i] == rotas_server3[-1]):
+                                        
+                                        rotas_server3.append(caminho[i + 1])
+                                    else:
+                                        rotas_server3.append(caminho[i])
+                                        rotas_server3.append(caminho[i + 1])
+                                else:
+                                    rotas_server3.append(caminho[i])
+                                    rotas_server3.append(caminho[i + 1])
+
+                        params_cpf = {"cpf": cliente.cpf}
+
+
+                        clientecopy1 = cliente
+                        
+                        clientecopy2 = requests.post(f"{SERVER_2_URL}/encontrar_cliente", params = params_cpf)
+                        clientecopy3 = requests.post(f"{SERVER_3_URL}/encontrar_cliente", params = params_cpf)
+                        
+                        clientecopy2 = clientecopy2.json()
+                        clientecopy2 = Cliente.from_dict(clientecopy2)
+                        
+
+                        clientecopy3 = clientecopy3.json()
+                        clientecopy3 = Cliente.from_dict(clientecopy3)
+
+                        if server1:
+                          
+                            novo_id = int(max(clientecopy1.trechos.keys(), default=0)) + 1
+                            clientecopy1.trechos[str(novo_id)] = rotas_server1
+                     
+                            atualizar_cliente(clientecopy1)
+
+                        if server2:
+                          
+                            novo_id = int(max(clientecopy2.trechos.keys(), default=0)) + 1
+                            clientecopy2.trechos[str(novo_id)] = rotas_server2
+                            cliente_copy = clientecopy2.__dict__
+                            retorno = requests.post(f"{SERVER_2_URL}/atualizar_cliente", json=cliente_copy)
+
+                        if server3:
+                          
+                            novo_id = int(max(clientecopy3.trechos.keys(), default=0)) + 1
+                            clientecopy3.trechos[str(novo_id)] = rotas_server3
+                            cliente_copy = clientecopy3.__dict__
+                            retorno = requests.post(f"{SERVER_3_URL}/atualizar_cliente", json=cliente_copy)
+                            
+
+
+                        print(server1, server2, server3) 
                         return jsonify({"msg": "Passagem comprada com sucesso"}), 200
+                        
                     
                     else:
 
@@ -297,7 +444,6 @@ def preparar_compra():
                         if(server3): # somente se usa
                             requests.post(f"{SERVER_3_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
                         return jsonify({"msg": "Compra cancelada, não foi possível concluir a transação"}), 400
-
 
                     
                 else:
@@ -331,6 +477,7 @@ def ver_passagens():
 def buscar_rotas():
     origem = request.args.get('origem')
     destino = request.args.get('destino')
+    
 
     if not origem or not destino:
         return jsonify({"msg": "Origem e destino são obrigatórios"}), 400

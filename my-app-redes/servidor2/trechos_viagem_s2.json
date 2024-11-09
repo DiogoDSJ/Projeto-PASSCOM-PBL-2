@@ -2,12 +2,12 @@
     "trechos": {
         "Belo Horizonte-MG": {
             "Vitória-ES": {
-                "vagas": 10,
+                "vagas": 9,
                 "preco": 95,
                 "server_id": "server2"
             },
             "São Paulo-SP": {
-                "vagas": 7,
+                "vagas": 4,
                 "preco": 130,
                 "server_id": "server2"
             }
@@ -19,12 +19,12 @@
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 160,
                 "server_id": "server2"
             },
             "Belo Horizonte-MG": {
-                "vagas": 8,
+                "vagas": 6,
                 "preco": 100,
                 "server_id": "server2"
             }
@@ -41,7 +41,7 @@
                 "server_id": "server2"
             },
             "Belo Horizonte-MG": {
-                "vagas": 2,
+                "vagas": 0,
                 "preco": 120,
                 "server_id": "server2"
             }
@@ -65,7 +65,7 @@
                 "server_id": "server2"
             },
             "São Paulo-SP": {
-                "vagas": 2,
+                "vagas": 0,
                 "preco": 150,
                 "server_id": "server2"
             }
@@ -77,26 +77,26 @@
                 "server_id": "server2"
             },
             "Vitória-ES": {
-                "vagas": 3,
+                "vagas": 1,
                 "preco": 100,
                 "server_id": "server2"
             }
         },
         "Aracaju-SE": {
             "Maceió-AL": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 65,
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 2,
+                "vagas": 0,
                 "preco": 80,
                 "server_id": "server2"
             }
         },
         "Maceió-AL": {
             "Recife-PE": {
-                "vagas": 3,
+                "vagas": 2,
                 "preco": 55,
                 "server_id": "server2"
             },
