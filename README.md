@@ -37,7 +37,7 @@
 <p>A API REST (Representational State Transfer) é um estilo arquitetural que define um conjunto de restrições e princípios para a criação de serviços web, permitindo a comunicação entre clientes e servidores de forma padronizada. Uma API REST utiliza os métodos HTTP (GET, POST, PUT, DELETE) para realizar operações em recursos identificados por URLs, onde cada recurso representa uma entidade do sistema, como usuários ou produtos. A comunicação é geralmente feita em formato JSON, o que facilita a integração com diferentes plataformas e linguagens de programação. REST promove a statelessness, ou seja, cada requisição do cliente deve conter todas as informações necessárias para que o servidor possa processá-la, permitindo escalabilidade e eficiência no gerenciamento de recursos.</p>
 
 <p>
-Foi desenvolvida uma API REST no servidor para que os clientes interajam com o sistema de passagens por meio de uma série de operações. Segue abaixo o detalhamento dos métodos implementados: 
+Foi desenvolvida uma API REST no servidor para que os clientes interajam com o sistema de passagens por meio de uma série de operações. Segue abaixo o detalhamento dos endpoints implementados: 
 </p>
   
   <h3>Cadastro de Clientes (<code>cadastro()</code>)</h3>
@@ -96,6 +96,25 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
         <li><strong>Descrição:</strong> Permite buscar rotas entre uma origem e um destino, retornando as rotas possíveis e seus custos.</li>
     </ul>
 
+
+<h3>Encontrar Cliente (<code>encontrar_cliente()</code>)</h3>
+<ul>
+    <li><strong>Endpoint:</strong> /encontrar_cliente</li>
+    <li><strong>Método:</strong> POST</li>
+    <li><strong>Parâmetros:</strong> HTTP - CPF do cliente</li>
+    <li><strong>Retornos:</strong> JSON - dados do cliente se encontrado (200) ou mensagem de erro (400 se não encontrado)</li>
+    <li><strong>Descrição:</strong> Permite buscar um cliente pelo CPF. Retorna os dados do cliente caso ele seja encontrado.</li>
+</ul>
+
+<h3>Atualizar Cliente (<code>atualizar_cliente()</code>)</h3>
+<ul>
+    <li><strong>Endpoint:</strong> /atualizar_cliente</li>
+    <li><strong>Método:</strong> POST</li>
+    <li><strong>Parâmetros:</strong> JSON - dados do cliente (incluindo CPF)</li>
+    <li><strong>Retornos:</strong> JSON - mensagem de sucesso (200 para cliente atualizado/adicionado)</li>
+    <li><strong>Descrição:</strong> Permite atualizar os dados de um cliente pelo CPF. Caso o cliente não exista, ele é adicionado ao sistema.</li>
+</ul>
+
 <h3>Remover Vaga (<code>remover_uma_vaga()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /remover_vaga</li> <li><strong>Método:</strong> POST</li> <li><strong>Parâmetros:</strong> JSON - Cidades de origem e destino</li> <li><strong>Retornos:</strong> JSON - status da remoção (400 - erro, 200 - vaga removida com sucesso)</li> <li><strong>Descrição:</strong> Remove uma vaga disponível em um trecho específico entre duas cidades, ajustando a capacidade disponível do trecho.</li> </ul>
 
 <h3>Carregar Trechos Locais (<code>carregar_trechos_locais()</code>)</h3> <ul> <li><strong>Endpoint:</strong> /carregar_trecho_local</li> <li><strong>Método:</strong> GET</li> <li><strong>Parâmetros:</strong> N/A</li> <li><strong>Retornos:</strong> JSON - lista de trechos locais disponíveis no servidor (200 - sucesso)</li> <li><strong>Descrição:</strong> Retorna os trechos de viagem locais disponíveis no servidor atual, incluindo as cidades de origem e destino e as vagas disponíveis.</li> </ul>
@@ -122,7 +141,12 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
 
 <p>Quando um cliente decide comprar uma passagem de um trecho específico, o sistema é projetado para agregar todas as possibilidades de rotas disponíveis, considerando a origem e o destino informados. Inicialmente, a consulta pode ser realizada na companhia A, que verifica a disponibilidade do trecho desejado. Caso o trecho não esteja disponível somente na companhia A, o sistema amplia a busca, consultando as companhias B e C por meio de requisições HTTP a seus respectivos endpoints de listagem de trechos.</p>
 
-<p>Essa integração entre as companhias é essencial para enriquecer o catálogo de trechos de viagem disponíveis para compra. Ao coletar informações de diferentes fontes, o servidor coordenador da compra monta as rotas novamente com a dfs no novo grafo, com os novos trechos adicionados e retorna para o cliente as possibilidades. </p>
+<p>Essa integração entre as companhias é essencial para enriquecer o catálogo de trechos de viagem disponíveis para compra. Ao coletar informações de diferentes fontes, o servidor coordenador da compra monta as rotas novamente com a dfs no novo grafo, com os novos trechos adicionados e retorna para o cliente as possibilidades. Segue uma figura que exemplifica o funcionamento geral do sistema: </p>
+
+<div align="center"> 
+  <img src = "https://github.com/user-attachments/assets/58eb098d-e12b-44f3-9252-97ca20a77d0e" width="550px" />
+</div>
+<p align="center"><strong>Figura 1. Esquema de comunicação geral</strong></p>
 
 </div>
 
@@ -141,11 +165,20 @@ Foi desenvolvida uma API REST no servidor para que os clientes interajam com o s
 <p><strong>1 - Fase de Preparação:</strong> Quando o coordenador inicia a transação, ele solicita que cada servidor trave o acesso ao arquivo de dados que contém os trechos de viagem. Esse lock impede que outros processos ou transações paralelas acessem ou modifiquem o arquivo até que a transação atual seja concluída. Cada servidor verifica sua capacidade de atender à solicitação e responde ao coordenador com "prepare" (se houver disponibilidade e o trecho puder ser reservado) ou "not-prepare" (se não houver disponibilidade). A manutenção do lock nesta fase é crucial para evitar que alterações no número de assentos ocorram simultaneamente, prevenindo conflitos entre transações.
 </p>
 
-<p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "prepare", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "not-prepare" na fase de preparação, a transação entra na fase de Abort, onde a compra é cancelada. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
+<p><strong>2 - Fase de Commit (ou Abort):</strong> Se todos os servidores responderem "prepare", a transação avança para a fase de Commit, onde cada servidor atualiza seu arquivo para efetivar a reserva dos trechos. O lock permanece ativo durante esta fase para evitar qualquer interferência externa, garantindo que a atualização dos dados seja realizada sem interrupções. Se algum servidor retornar "not-prepare" na fase de preparação, a transação entra na fase de Abort, onde a compra é cancelada e o rollback é realizado. Após a conclusão da transação, seja por Commit ou Abort, o lock é liberado, permitindo o acesso de outros processos ou transações ao arquivo.
 </p>
 
 <div id = "confiabilidade">
 
+<h2>Confiabilidade da solução</h2>
+
+<p>Foi implementado no sistema um esquema que permite ao usuário continuar comprando mesmo que um ou mais servidores estejam indisponíveis. Assim, caso uma das companhias falhe, os trechos disponíveis em outras companhias continuam sendo oferecidos ao usuário. O sistema apresenta todas as rotas possíveis de acordo com as vagas disponíveis, garantindo que o usuário não visualize uma rota que dependa de um servidor fora do ar, pois, na prática, essa vaga é imediatamente considerada perdida.</p>
+
+<p>Esse esquema funciona, em resumo, da seguinte maneira: ao acessar o sistema, o usuário tem sua conexão verificada com o servidor da companhia A, com tentativas de conexão realizadas três vezes antes de emitir um veredito. Caso o servidor não responda, o usuário é automaticamente redirecionado para outro servidor e pode optar por desconectar se não tiver interesse nessa companhia. Permanecendo conectado, ele pode realizar a compra normalmente, acessando os recursos dos servidores disponíveis no momento. A cada requisição, o sistema tenta reconectar ao servidor que estava offline; caso ele volte ao ar, as rotas que o incluem passam a ser apresentadas imediatamente, ampliando as possibilidades para o usuário.</p>
+
+<p>Caso ocorra alguma falha critíca, um rollbak é realizado. O rollback no protocolo de commit em duas fases (2PC) é uma ação realizada quando ocorre uma falha em alguma das etapas do processo de commit distribuído. No 2PC, os participantes passam por duas fases: prepare (preparação) e commit (confirmação). Na fase de preparação, cada servidor verifica se consegue realizar a transação e responde ao coordenador com um "ok" ou "não". Se algum servidor responde negativamente ou ocorre uma falha durante o processo, o coordenador decide pelo rollback da transação.</p>
+
+<p>O rollback, então, desfaz qualquer alteração provisória feita por cada servidor participante, retornando o sistema ao estado anterior ao início da transação, garantindo a consistência dos dados e evitando operações incompletas ou inconsistentes.</p>
 
   
 
