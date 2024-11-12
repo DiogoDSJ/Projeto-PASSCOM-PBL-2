@@ -5,7 +5,7 @@ import json
 
 # Configurações do servidor
 
-'''
+
 # conectar entre conteiners localmente
 SERVER_HOST = 'servidor1'  # localhost ou servidor1
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
@@ -14,17 +14,8 @@ SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
 
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
-'''
 
-#conectando localmente
-SERVER_HOST = '192.168.31.53'  
-SERVER_PORT = 3000         # Porta configurada no servidor Flask
 
-SERVER_1_URL = "http://172.16.103.244:3000" 
-SERVER_2_URL = "http://172.16.103.244:4000" 
-SERVER_3_URL = "http://172.16.103.244:6000" 
-
-BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
 
 
 def limpar_tela():

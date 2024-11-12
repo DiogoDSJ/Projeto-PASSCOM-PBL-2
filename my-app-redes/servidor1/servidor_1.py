@@ -16,15 +16,15 @@ CAMINHO_ROLLBACK = Path(__file__).parent / 'rollback_data.json'
 lock = threading.Lock()
 
 
-SERVER_1_URL = "http://172.16.103.244:3000" 
+'''SERVER_1_URL = "http://172.16.103.244:3000" 
 SERVER_2_URL = "http://172.16.103.244:4000" 
-SERVER_3_URL = "http://172.16.103.244:6000" 
+SERVER_3_URL = "http://172.16.103.244:6000" '''
 
-'''
+
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
 SERVER_2_URL = "http://servidor2:4000"
 SERVER_3_URL = "http://servidor3:6000"
-'''
+
 
 # Classe Cliente
 class Cliente:
