@@ -19,11 +19,7 @@
                 "server_id": "server2"
             },
             "Salvador-BA": {
-<<<<<<< HEAD
-                "vagas": 0,
-=======
                 "vagas": 4,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 160,
                 "server_id": "server2"
             },
@@ -40,12 +36,12 @@
                 "server_id": "server2"
             },
             "Porto Alegre-RS": {
-                "vagas": 1,
+                "vagas": 4,
                 "preco": 180,
                 "server_id": "server2"
             },
             "Belo Horizonte-MG": {
-                "vagas": 0,
+                "vagas": 8,
                 "preco": 120,
                 "server_id": "server2"
             }
@@ -57,14 +53,14 @@
                 "server_id": "server2"
             },
             "São Paulo-SP": {
-                "vagas": 4,
+                "vagas": 2,
                 "preco": 110,
                 "server_id": "server2"
             }
         },
         "Porto Alegre-RS": {
             "Canoas-RS": {
-                "vagas": 2,
+                "vagas": 5,
                 "preco": 30,
                 "server_id": "server2"
             },
@@ -76,7 +72,7 @@
         },
         "Salvador-BA": {
             "Aracaju-SE": {
-                "vagas": 0,
+                "vagas": 7,
                 "preco": 90,
                 "server_id": "server2"
             },
@@ -93,7 +89,7 @@
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 0,
+                "vagas": 6,
                 "preco": 80,
                 "server_id": "server2"
             }
@@ -131,7 +127,7 @@
         },
         "Florianópolis-SC": {
             "Curitiba-PR": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 50,
                 "server_id": "server2"
             }

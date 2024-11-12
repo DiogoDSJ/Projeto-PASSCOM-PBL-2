@@ -55,12 +55,12 @@
         },
         "Salvador-BA": {
             "Fortaleza-CE": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 110,
                 "server_id": "server3"
             },
             "Rio de Janeiro-RJ": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 160,
                 "server_id": "server3"
             }
@@ -72,7 +72,7 @@
                 "server_id": "server3"
             },
             "Salvador-BA": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 100,
                 "server_id": "server3"
             }
@@ -84,7 +84,7 @@
                 "server_id": "server3"
             },
             "Belo Horizonte-MG": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 110,
                 "server_id": "server3"
             }
@@ -108,7 +108,7 @@
                 "server_id": "server3"
             },
             "Natal-RN": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 170,
                 "server_id": "server3"
             }

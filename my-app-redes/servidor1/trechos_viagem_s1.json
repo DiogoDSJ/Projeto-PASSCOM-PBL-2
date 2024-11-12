@@ -2,82 +2,58 @@
     "trechos": {
         "São Paulo-SP": {
             "Rio de Janeiro-RJ": {
-<<<<<<< HEAD
-                "vagas": 0,
-=======
-                "vagas": 1,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
+                "vagas": 5,
                 "preco": 100,
                 "server_id": "server1"
             },
             "Brasília-DF": {
-<<<<<<< HEAD
-                "vagas": 0,
-=======
-                "vagas": 2,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
+                "vagas": 5,
                 "preco": 150,
                 "server_id": "server1"
             }
         },
         "Rio de Janeiro-RJ": {
             "São Paulo-SP": {
-                "vagas": 5,
+                "vagas": 2,
                 "preco": 100,
                 "server_id": "server1"
             },
             "Brasília-DF": {
-<<<<<<< HEAD
-                "vagas": 2,
-=======
-                "vagas": 6,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
+                "vagas": 1,
                 "preco": 80,
                 "server_id": "server1"
             },
             "Salvador-BA": {
-<<<<<<< HEAD
                 "vagas": 4,
-=======
-                "vagas": 5,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 120,
                 "server_id": "server1"
             }
         },
         "Brasília-DF": {
             "São Paulo-SP": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 150,
                 "server_id": "server1"
             },
             "Salvador-BA": {
-<<<<<<< HEAD
-                "vagas": 0,
-=======
-                "vagas": 2,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
+                "vagas": 5,
                 "preco": 90,
                 "server_id": "server1"
             },
             "Rio de Janeiro-RJ": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 80,
                 "server_id": "server1"
             }
         },
         "Salvador-BA": {
             "Rio de Janeiro-RJ": {
-<<<<<<< HEAD
-                "vagas": 3,
-=======
-                "vagas": 4,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
+                "vagas": 1,
                 "preco": 140,
                 "server_id": "server1"
             },
             "Fortaleza-CE": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 110,
                 "server_id": "server1"
             }
@@ -96,31 +72,19 @@
         },
         "Recife-PE": {
             "Fortaleza-CE": {
-<<<<<<< HEAD
                 "vagas": 6,
-=======
-                "vagas": 8,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 80,
                 "server_id": "server1"
             },
             "Porto Alegre-RS": {
-<<<<<<< HEAD
                 "vagas": 4,
-=======
-                "vagas": 7,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 130,
                 "server_id": "server1"
             }
         },
         "Porto Alegre-RS": {
             "Recife-PE": {
-<<<<<<< HEAD
                 "vagas": 7,
-=======
-                "vagas": 9,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 150,
                 "server_id": "server1"
             },
@@ -132,16 +96,12 @@
         },
         "Curitiba-PR": {
             "Porto Alegre-RS": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 60,
                 "server_id": "server1"
             },
             "Manaus-AM": {
-<<<<<<< HEAD
                 "vagas": 6,
-=======
-                "vagas": 10,
->>>>>>> abf5d59abd9befdf8e47d24e768b5df3c14bfe3f
                 "preco": 200,
                 "server_id": "server1"
             }
@@ -153,7 +113,7 @@
                 "server_id": "server1"
             },
             "Belo Horizonte-MG": {
-                "vagas": 0,
+                "vagas": 5,
                 "preco": 160,
                 "server_id": "server1"
             }
