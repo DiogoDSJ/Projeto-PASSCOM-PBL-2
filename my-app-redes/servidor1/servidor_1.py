@@ -10,14 +10,15 @@ app = Flask(__name__)
 # Caminhos dos arquivos JSON
 CAMINHO_TRECHOS = Path(__file__).parent / "trechos_viagem_s1.json"
 CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor1.json"
+CAMINHO_ROLLBACK = Path(__file__).parent / 'rollback_data.json'
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
 
 
-SERVER_1_URL = "http://192.168.31.53:3000" 
-SERVER_2_URL = "http://192.168.31.53:4000"
-SERVER_3_URL = "http://192.168.31.53:6000"
+SERVER_1_URL = "http://10.65.142.213:3000" 
+SERVER_2_URL = "http://10.65.142.213:4000" 
+SERVER_3_URL = "http://10.65.142.213:6000" 
 
 '''
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
@@ -138,11 +139,16 @@ def remover_uma_vaga():
     data = request.get_json()
     origem = data.get("origem")
     destino = data.get("destino")
-    
     trechos_viagem = carregar_trechos()
+    trechos_rollback = carregar_json(CAMINHO_ROLLBACK)
     if origem in trechos_viagem and destino in trechos_viagem[origem] and trechos_viagem[origem][destino]["vagas"] > 0:
         trechos_viagem[origem][destino]["vagas"] -= 1
+        trechos_rollback[origem] = origem
+        trechos_rollback[origem][destino] = destino
+        trechos_rollback[origem][destino]["vagas"] = trechos_viagem[origem][destino]["vagas"]
+        trechos_rollback[origem][destino]["server_id"] = trechos_viagem[origem][destino]["server_id"]
         salvar_trechos(trechos_viagem)
+        salvar_json(trechos_rollback, CAMINHO_ROLLBACK)
         return jsonify({"msg": "Vaga removida com sucesso"}), 200
     else:
         return jsonify({"msg": "Erro na remocao da vaga"}), 400
@@ -322,10 +328,12 @@ def preparar_compra():
                 
                 prepare_responses = []
                 if(server2): # somente se usa
-                    response = requests.post(f"{SERVER_2_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    response = requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "servidores" : servidores})
+                    #response = requests.post(f"{SERVER_2_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
                     prepare_responses.append(response)
                 if(server3): # somente se usa
-                    response = requests.post(f"{SERVER_3_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    #response = requests.post(f"{SERVER_3_URL}/prepare", json={"caminho": caminho, "cpf": cpf})
+                    response = requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "servidores" : servidores})
                     prepare_responses.append(response)
                 print(prepare_responses)
                 
@@ -572,6 +580,43 @@ def coletar_trechos(trechos_viagem, servidores_externos):
 def prepare():
     data = request.get_json()
     caminho = data.get('caminho')
+    servidores_incluidos = data.get('servidores')
+    for i in range(len(caminho) - 1):
+        origem = caminho[i]
+        destino = caminho[i + 1]
+        
+        # Identifica o servidor que gerencia o trecho
+        server_index = servidores_incluidos[i]  # i-ésimo servidor para o i-ésimo trecho
+        if server_index == 'server1':
+            server_url = SERVER_1_URL
+        elif server_index == 'server2':
+            server_url = SERVER_2_URL
+        elif server_index == 'server3':
+            server_url = SERVER_3_URL
+        else:
+            continue  # Pula se o servidor não for reconhecido
+        msg1 = (f"Servidor pronto: {get_server}")
+        msg2 = (f"Erro remover vaga do trecho, servidor não pronto: {get_server}")
+        try:
+            if(server_url is None):
+                print("URL Invalido")
+                return 400
+            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino}, timeout = 10)
+            if response.status_code == 200:
+                print(f"Vaga removida com sucesso.")
+            else:
+                print(f"Erro remover vaga do trecho: {response.json().get('msg', '')}")
+                return jsonify({"msg": msg1}), 409
+        except requests.exceptions.RequestException as e:
+            print(f"Erro de conexão: {e}")
+        except TimeoutError:
+            return jsonify({"msg": msg1}), 409
+    return jsonify({"msg": msg2}), 200
+
+'''@app.route('/prepare', methods=['POST'])
+def prepare():
+    data = request.get_json()
+    caminho = data.get('caminho')
     cpf = data.get('cpf')
 
     # Verificar disponibilidade e preparar a compra
@@ -585,7 +630,7 @@ def prepare():
         else:
             return jsonify({"status": "Passagem não disponível"}), 400
     finally:
-        lock.release()  # Libera o lock após a verificação
+        lock.release()  # Libera o lock após a verificação'''
 
 # Fase de commit (para outros servidores)
 @app.route('/commit', methods=['POST'])
@@ -607,27 +652,42 @@ def commit():
             server_url = SERVER_3_URL
         else:
             continue  # Pula se o servidor não for reconhecido
-        
+        msg1 = (f"Servidor pronto: {get_server}")
+        msg2 = (f"Erro remover vaga do trecho, servidor não pronto: {get_server}")
         try:
             if(server_url is None):
                 print("URL Invalido")
                 return 400
-            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino})
+            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino}, timeout = 10)
             if response.status_code == 200:
                 print(f"Vaga removida com sucesso.")
             else:
                 print(f"Erro remover vaga do trecho: {response.json().get('msg', '')}")
+                return jsonify({"msg": msg1}), 409
         except requests.exceptions.RequestException as e:
             print(f"Erro de conexão: {e}")
-    return jsonify({"msg": "Compra confirmada"}), 200
+        except TimeoutError:
+            return jsonify({"msg": msg1}), 409
+    return jsonify({"msg": msg2}), 200
 
 # Fase de rollback (para outros servidores)
 @app.route('/rollback', methods=['POST'])
 def rollback():
     data = request.get_json()
-    caminho = data.get('caminho')
-    cpf = data.get('cpf')
-
+    lock.acquire()
+    try:
+        rollback_arquivo = carregar_json(CAMINHO_ROLLBACK)
+        trechos_viagem = carregar_trechos_locais
+        for origem, destinos in rollback_arquivo.items():
+            for destino, detalhes in destinos.items():
+                if detalhes['server_id'] == get_server():
+                    trechos_viagem[origem][destino]["vagas"] = rollback_arquivo[origem][destino]["vagas"]
+                    rollback_arquivo.pop(origem)
+        
+        salvar_trechos(trechos_viagem)
+        salvar_json(rollback_arquivo, CAMINHO_ROLLBACK)
+    finally:
+        lock.release()
     # Aqui seria a lógica para desfazer a operação, se necessário.
     return jsonify({"msg": "Rollback realizado"}), 200
 
