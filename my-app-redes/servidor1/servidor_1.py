@@ -672,4 +672,4 @@ def inicializar_arquivos():
 inicializar_arquivos()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000, host = '0.0.0.0', threading=True)
+    app.run(debug=True, port=3000, host = '0.0.0.0', threaded=True)

@@ -671,4 +671,4 @@ inicializar_arquivos()
 
 if __name__ == '__main__':
     inicializar_arquivos()  # Inicializa os arquivos ao iniciar o servidor
-    app.run(port=4000, debug=True,host = '0.0.0.0', threading=True)
+    app.run(port=4000, debug=True,host = '0.0.0.0', threaded=True)
