@@ -20,9 +20,9 @@ BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
 SERVER_HOST = '192.168.31.53'  
 SERVER_PORT = 3000         # Porta configurada no servidor Flask
 
-SERVER_1_URL = "http://192.168.31.53:3000" 
-SERVER_2_URL = "http://192.168.31.53:4000"
-SERVER_3_URL = "http://192.168.31.53:6000"
+SERVER_1_URL = "http://172.16.103.244:3000" 
+SERVER_2_URL = "http://172.16.103.244:4000" 
+SERVER_3_URL = "http://172.16.103.244:6000" 
 
 BASE_URL = f'http://{SERVER_HOST}:{SERVER_PORT}'
 
@@ -78,21 +78,27 @@ def selecionar_cidade(indice, cidades):
 
 def ver_trechos(server_url):
     """Visualiza os trechos disponíveis."""
-    try:
-        response = requests.get(f"{server_url}/trechos")
-        if response.status_code == 200:
-            trechos = response.json()
-            for origem, destinos in trechos.items():
-                print(f"Origem: {origem}")
-                for destino, info in destinos.items():
-                    print(f"  Destino: {destino}")
-                    print(f"    Vagas: {info['vagas']}")
-                    print(f"    Preço: R${info['preco']}")
-                print("-"*30)
-        else:
-            print(f"Erro ao buscar trechos: {response.json().get('msg', '')}")
-    except requests.exceptions.RequestException as e:
-        print(f"Erro de conexão: {e}")
+    # Lista de URLs dos servidores
+    i = 1
+    servidores = [SERVER_1_URL, SERVER_2_URL, SERVER_3_URL]
+    for servidor in servidores:
+        try:
+            response = requests.get(f"{server_url}/trechos")
+            if response.status_code == 200:
+                trechos = response.json()
+                print(f"Servidor {i}")
+                for origem, destinos in trechos.items():
+                    print(f"Origem: {origem}")
+                    for destino, info in destinos.items():
+                        print(f"  Destino: {destino}")
+                        print(f"    Vagas: {info['vagas']}")
+                        print(f"    Preço: R${info['preco']}")
+                    print("-"*30)
+                i+= 1
+            else:
+                print(f"Erro ao buscar trechos: {response.json().get('msg', '')}")
+        except requests.exceptions.RequestException as e:
+            print(f"Erro de conexão: {e}")
 
     
 

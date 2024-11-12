@@ -16,9 +16,9 @@ CAMINHO_ROLLBACK = Path(__file__).parent / 'rollback_data.json'
 lock = threading.Lock()
 
 
-SERVER_1_URL = "http://10.65.142.213:3000" 
-SERVER_2_URL = "http://10.65.142.213:4000" 
-SERVER_3_URL = "http://10.65.142.213:6000" 
+SERVER_1_URL = "http://172.16.103.244:3000" 
+SERVER_2_URL = "http://172.16.103.244:4000" 
+SERVER_3_URL = "http://172.16.103.244:6000" 
 
 '''
 SERVER_1_URL = "http://servidor1:3000" #para conectar conteiners de pcs diferentes, basta trocar "servidor1" e demais pelo ip da maquina do servidor
@@ -57,10 +57,10 @@ def tem_rollback():
             dados = json.load(arquivo)
         
         # Verifica se o JSON contém alguma chave
-        if bool(dados):
+        if dados:
             return jsonify({"status": "success", "message": "O arquivo JSON contém chaves.", "has_keys": True}), 200
         else:
-            return jsonify({"status": "success", "message": "O arquivo JSON está vazio.", "has_keys": False}), 200
+            return jsonify({"status": "success", "message": "O arquivo JSON está vazio.", "has_keys": False}), 409
     except FileNotFoundError:
         # Retorna resposta JSON para arquivo não encontrado
         return jsonify({"status": "error", "message": "Arquivo não encontrado."}), 404
@@ -160,13 +160,10 @@ def remover_uma_vaga():
     trechos_viagem = carregar_trechos()
     trechos_rollback = carregar_json(CAMINHO_ROLLBACK)
     if origem in trechos_viagem and destino in trechos_viagem[origem] and trechos_viagem[origem][destino]["vagas"] > 0:
-        trechos_viagem[origem][destino]["vagas"] -= 1
-        trechos_rollback[origem] = origem
-        trechos_rollback[origem][destino] = destino
-        trechos_rollback[origem][destino]["vagas"] = trechos_viagem[origem][destino]["vagas"]
-        trechos_rollback[origem][destino]["server_id"] = trechos_viagem[origem][destino]["server_id"]
-        salvar_trechos(trechos_viagem)
+        trechos_rollback[origem] = trechos_viagem[origem]
         salvar_json(trechos_rollback, CAMINHO_ROLLBACK)
+        trechos_viagem[origem][destino]["vagas"] -= 1
+        salvar_trechos(trechos_viagem)
         return jsonify({"msg": "Vaga removida com sucesso"}), 200
     else:
         return jsonify({"msg": "Erro na remocao da vaga"}), 400
@@ -315,7 +312,7 @@ def preparar_compra():
             server3 = True
     
     if server1:
-        response = requests.get({f"{SERVER_1_URL}/check_rollback"}) # Checa se tem rollback
+        response = requests.get(f"{SERVER_1_URL}/check_rollback") # Checa se tem rollback
         status_code = response.status_code
         data = response.json()  # Obtém a resposta JSON
         if status_code == 200:
@@ -329,7 +326,7 @@ def preparar_compra():
 
         
     if server2:
-        response = requests.get({f"{SERVER_2_URL}/check_rollback"}) # Checa se tem rollback
+        response = requests.get(f"{SERVER_2_URL}/check_rollback") # Checa se tem rollback
         status_code = response.status_code
         data = response.json()  # Obtém a resposta JSON
         if status_code == 200:
@@ -341,7 +338,7 @@ def preparar_compra():
             return jsonify({"msg": "Não foi possivel cadastrar o cliente em todos os servidores envolvidos na rota"}), 400
     
     if server3:
-        response = requests.get({f"{SERVER_3_URL}/check_rollback"}) # Checa se tem rollback
+        response = requests.get(f"{SERVER_3_URL}/check_rollback") # Checa se tem rollback
         status_code = response.status_code
         data = response.json()  # Obtém a resposta JSON
         if status_code == 200:
@@ -372,127 +369,67 @@ def preparar_compra():
             # Verificar se todos os servidores responderam com sucesso
             if len(prepare_responses) == 0 or all(resp.status_code == 200 for resp in prepare_responses): 
                 # Fase de commit
-                if(server1): # somente se usa
-                    response1 = requests.post(f"{SERVER_1_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
-                elif(server2): # somente se usa
-                    response1 = requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
-                elif(server3): # somente se usa
-                    response1 =requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "servidores" : servidores}) #manda compra nos outros servidores
-                # Adicionar passagem ao cliente
-                response1res = response1.status_code
 
-
-                if response1res == 200:
+                params = {"caminho" : caminho}
                     
-                    rotas_server1 = [] 
-                    rotas_server2 = [] 
-                    rotas_server3 = [] 
+                rotas_server1 = [] 
+                rotas_server2 = [] 
+                rotas_server3 = [] 
 
 
-    
-                    for i in range(len(servidores)):
-                        
-                        lista_server1 = [] 
-                        lista_server2 = [] 
-                        lista_server3 = [] 
 
-
-                        if servidores[i] == "server1":
-                            
-
-                            lista_server1.append(caminho[i])
-                            lista_server1.append(caminho[i + 1])
-                            rotas_server1.append(lista_server1)
-                            
-
-                        elif servidores[i] == "server2":
-
-
-                            lista_server2.append(caminho[i])
-                            lista_server2.append(caminho[i + 1])
-                            rotas_server2.append(lista_server2)
-
-                                
-                        elif servidores[i] == "server3":
+                for i in range(len(servidores)):
                     
-                                
-                            lista_server3.append(caminho[i])
-                            lista_server3.append(caminho[i + 1])
-                            rotas_server3.append(lista_server3)
+                    lista_server1 = [] 
+                    lista_server2 = [] 
+                    lista_server3 = [] 
+
+
+                    if servidores[i] == "server1":
                         
 
-                
-                    params_cpf = {"cpf": cliente.cpf}
+                        lista_server1.append(caminho[i])
+                        lista_server1.append(caminho[i + 1])
+                        rotas_server1.append(lista_server1)
+                        
 
-                
+                    elif servidores[i] == "server2":
 
-                    clientecopy1 = encontrar_cliente(cliente.cpf)
+
+                        lista_server2.append(caminho[i])
+                        lista_server2.append(caminho[i + 1])
+                        rotas_server2.append(lista_server2)
+
+                            
+                    elif servidores[i] == "server3":
+                
+                            
+                        lista_server3.append(caminho[i])
+                        lista_server3.append(caminho[i + 1])
+                        rotas_server3.append(lista_server3)
                     
 
-                    if server1:
-                        
-
-                        for i in rotas_server1:
-
-                            novo_id = max(map(int, clientecopy1.trechos.keys()), default=0) + 1
-                            clientecopy1.trechos[str(novo_id)] = i
 
 
-                        atualizar_cliente(clientecopy1)
+                if server1:
+                    requests.post(f"{SERVER_1_URL}/commit", json={"caminho": caminho, "rotas_server" : rotas_server1, "cpf": cpf}) #manda compra nos outros servidores
 
-                    if server2:
+                if server2:
 
-                        clientecopy2 = requests.post(f"{SERVER_2_URL}/encontrar_cliente", params = params_cpf)
-                        clientecopy2 = clientecopy2.json()
-                        clientecopy2 = Cliente.from_dict(clientecopy2)
-                        
-                        for i in rotas_server2:
-
-                            if clientecopy2:
-                                novo_id = max(map(int, clientecopy2.trechos.keys()), default=0) + 1
-                            else:
-                                novo_id = 0 
-                            
-                            clientecopy2.trechos[str(novo_id)] = i
-                        
-                        cliente_copy = clientecopy2.__dict__
-                        retorno = requests.post(f"{SERVER_2_URL}/atualizar_cliente", json=cliente_copy)
-
-                    if server3:
+                    requests.post(f"{SERVER_2_URL}/commit", json={"caminho": caminho, "rotas_server" : rotas_server2, "cpf": cpf}) #manda compra nos outros servidores
 
 
-                        clientecopy3 = requests.post(f"{SERVER_3_URL}/encontrar_cliente", params = params_cpf)
-                        clientecopy3 = clientecopy3.json()
-                        clientecopy3 = Cliente.from_dict(clientecopy3)
-                        
+                if server3:
 
-                        for i in rotas_server3:
+                    requests.post(f"{SERVER_3_URL}/commit", json={"caminho": caminho, "rotas_server" : rotas_server3, "cpf": cpf}) #manda compra nos outros servidores
 
-                            if clientecopy3:
-                                novo_id = max(map(int, clientecopy3.trechos.keys()), default=0) + 1
-                            else:
-                                novo_id = 0 
-                            
-                            clientecopy3.trechos[str(novo_id)] = i
-                        
-                        cliente_copy = clientecopy3.__dict__
-                        retorno = requests.post(f"{SERVER_3_URL}/atualizar_cliente", json=cliente_copy)
-                        
-
-
-                    print(server1, server2, server3) 
-                    return jsonify({"msg": "Passagem comprada com sucesso"}), 200
                     
-                
-                else:
 
-                    if(server2): # somente se usa
-                        requests.post(f"{SERVER_2_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
-                    if(server3): # somente se usa
-                        requests.post(f"{SERVER_3_URL}/rollback", json={"caminho": caminho, "cpf": cpf})
-                    return jsonify({"msg": "Compra cancelada, não foi possível concluir a transação"}), 400
 
+                print(server1, server2, server3) 
+                return jsonify({"msg": "Passagem comprada com sucesso"}), 200
                 
+            
             else:
                 if(server1): # somente se usa
                     requests.post(f"{SERVER_1_URL}/rollback")
@@ -635,7 +572,7 @@ def prepare():
             if(server_url is None):
                 print("URL Invalido")
                 return 400
-            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino}, timeout = 10)
+            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino})
             if response.status_code == 200:
                 print(f"Vaga removida com sucesso.")
             else:
@@ -647,63 +584,21 @@ def prepare():
             return jsonify({"msg": msg1}), 409
     return jsonify({"msg": msg2}), 200
 
-'''@app.route('/prepare', methods=['POST'])
-def prepare():
-    data = request.get_json()
-    caminho = data.get('caminho')
-    cpf = data.get('cpf')
-
-    # Verificar disponibilidade e preparar a compra
-    trechos_viagem = carregar_trechos()
-    sucesso = True
-
-    try :
-
-        if lock.acquire(blocking=False):
-            return jsonify({"status": "prepare"}), 200
-        else:
-            return jsonify({"status": "Passagem não disponível"}), 400
-    finally:
-        lock.release()  # Libera o lock após a verificação'''
 
 # Fase de commit (para outros servidores)
 @app.route('/commit', methods=['POST'])
 def commit():
     data = request.get_json()
-    caminho = data.get('caminho')
-    servidores_incluidos = data.get('servidores')
-    for i in range(len(caminho) - 1):
-        origem = caminho[i]
-        destino = caminho[i + 1]
-        
-        # Identifica o servidor que gerencia o trecho
-        server_index = servidores_incluidos[i]  # i-ésimo servidor para o i-ésimo trecho
-        if server_index == 'server1':
-            server_url = SERVER_1_URL
-        elif server_index == 'server2':
-            server_url = SERVER_2_URL
-        elif server_index == 'server3':
-            server_url = SERVER_3_URL
-        else:
-            continue  # Pula se o servidor não for reconhecido
-        msg1 = (f"Servidor pronto: {get_server}")
-        msg2 = (f"Erro remover vaga do trecho, servidor não pronto: {get_server}")
-        try:
-            if(server_url is None):
-                print("URL Invalido")
-                return 400
-            response = requests.post(f"{server_url}/remover_vaga", json={"origem": origem, "destino": destino}, timeout = 10)
-            if response.status_code == 200:
-                print(f"Vaga removida com sucesso.")
-            else:
-                print(f"Erro remover vaga do trecho: {response.json().get('msg', '')}")
-                return jsonify({"msg": msg1}), 409
-        except requests.exceptions.RequestException as e:
-            print(f"Erro de conexão: {e}")
-        except TimeoutError:
-            return jsonify({"msg": msg1}), 409
-    return jsonify({"msg": msg2}), 200
-
+    rotas_server = data.get("rotas_server")
+    cpf = data.get("cpf")
+    clientecopy = encontrar_cliente(cpf)
+    for i in rotas_server:
+        novo_id = max(map(int, clientecopy.trechos.keys()), default=0) + 1
+        clientecopy.trechos[str(novo_id)] = i
+    
+    atualizar_cliente(clientecopy)
+    salvar_json({}, CAMINHO_ROLLBACK)
+    
 # Fase de rollback (para outros servidores)
 @app.route('/rollback', methods=['POST'])
 def rollback():
@@ -777,4 +672,4 @@ def inicializar_arquivos():
 inicializar_arquivos()
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000, host = '0.0.0.0')
+    app.run(debug=True, port=3000, host = '0.0.0.0', threading=True)
