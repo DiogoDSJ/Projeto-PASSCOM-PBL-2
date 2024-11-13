@@ -19,7 +19,7 @@
                 "server_id": "server1"
             },
             "Brasília-DF": {
-                "vagas": 1,
+                "vagas": 0,
                 "preco": 80,
                 "server_id": "server1"
             },
@@ -36,7 +36,7 @@
                 "server_id": "server1"
             },
             "Salvador-BA": {
-                "vagas": 5,
+                "vagas": 4,
                 "preco": 90,
                 "server_id": "server1"
             },

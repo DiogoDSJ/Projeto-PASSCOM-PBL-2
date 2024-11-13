@@ -2,7 +2,7 @@
     "trechos": {
         "Belo Horizonte-MG": {
             "Vitória-ES": {
-                "vagas": 6,
+                "vagas": 5,
                 "preco": 95,
                 "server_id": "server2"
             },
@@ -19,7 +19,7 @@
                 "server_id": "server2"
             },
             "Salvador-BA": {
-                "vagas": 4,
+                "vagas": 3,
                 "preco": 160,
                 "server_id": "server2"
             },
@@ -41,7 +41,7 @@
                 "server_id": "server2"
             },
             "Belo Horizonte-MG": {
-                "vagas": 8,
+                "vagas": 7,
                 "preco": 120,
                 "server_id": "server2"
             }

@@ -3,8 +3,8 @@
         "cpf": "11111111111",
         "trechos": {
             "1": [
-                "Belo Horizonte-MG",
-                "São Paulo-SP"
+                "São Paulo-SP",
+                "Belo Horizonte-MG"
             ],
             "2": [
                 "Belo Horizonte-MG",
@@ -13,37 +13,6 @@
             "3": [
                 "Vitória-ES",
                 "Salvador-BA"
-            ]
-        }
-    },
-    {
-        "cpf": "12345678910",
-        "trechos": {
-            "1": [
-                "Vitória-ES",
-                "Salvador-BA",
-                "São Paulo-SP",
-                "Porto Alegre-RS",
-                "Canoas-RS"
-            ],
-            "2": [
-                "Vitória-ES",
-                "Rio de Janeiro-RJ"
-            ],
-            "3": [
-                "Curitiba-PR",
-                "São Paulo-SP",
-                "Salvador-BA",
-                "Aracaju-SE",
-                "Maceió-AL",
-                "Recife-PE",
-                "Porto Alegre-RS",
-                "Canoas-RS"
-            ],
-            "4": [
-                "Salvador-BA",
-                "Aracaju-SE",
-                "Maceió-AL"
             ]
         }
     }

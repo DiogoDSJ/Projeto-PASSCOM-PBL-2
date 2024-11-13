@@ -12,9 +12,9 @@ CAMINHO_CLIENTES = Path(__file__).parent / "clientes_servidor2.json"
 CAMINHO_ROLLBACK = Path(__file__).parent / 'rollback_data.json'
 
 # URLs dos servidores
-SERVER_1_URL = "http://servidor1:3000"  # URL do servidor 1
-SERVER_2_URL = "http://servidor2:4000"  # URL do servidor 2 (o atual)
-SERVER_3_URL = "http://servidor3:6000"  # URL do servidor 3
+SERVER_1_URL = "http://192.168.1.156:3000"  # URL do servidor 1
+SERVER_2_URL = "http://192.168.1.156:4000"  # URL do servidor 2 (o atual)
+SERVER_3_URL = "http://192.168.1.156:6000"  # URL do servidor 3
 
 # Lock para sincronização de acesso aos arquivos
 lock = threading.Lock()
